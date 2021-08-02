@@ -177,10 +177,16 @@ class GraphLogModel(BaseModel):
         return x, masked_idx
 
     def intra_NCE_loss(self, node_reps, node_mod_reps, masked_idx):
-        return -torch.log(F.cosine_similarity(node_reps[masked_idx], node_mod_reps[masked_idx]) + 1e-6).sum()
+        masked_node_reps = node_reps[masked_idx]
+        masked_node_mod_reps = node_mod_reps[masked_idx]
+        pos_pairs_sim = 1 - F.cosine_similarity(masked_node_reps, masked_node_mod_reps)
+        neg_pairs_sim = F.cosine_similarity(masked_node_reps, masked_node_mod_reps[torch.randperm(len(masked_idx))])
+        return -torch.log(torch.cat([F.relu(pos_pairs_sim), F.relu(neg_pairs_sim)]) + 1e-6).sum()
 
     def inter_NCE_loss(self, graph_reps, graph_mod_reps):
-        return -torch.log(F.cosine_similarity(graph_reps, graph_mod_reps) + 1e-6).sum()
+        pos_pairs_sim = 1 - F.cosine_similarity(graph_reps, graph_mod_reps)
+        neg_pairs_sim = F.cosine_similarity(graph_reps, graph_mod_reps[torch.randperm(graph_reps.size(0))])
+        return -torch.log(torch.cat([pos_pairs_sim, neg_pairs_sim]) + 1e-6).sum()
 
     def embed_batch(self, x, edge_index, batch) -> Tuple[torch.Tensor, torch.Tensor]:
         feat_embed = self.feat_embed(x)
