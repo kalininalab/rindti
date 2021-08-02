@@ -21,7 +21,7 @@ trainer = Trainer(
     callbacks=callbacks,
     logger=logger,
     gradient_clip_val=30,
-    max_epochs=11,
+    max_epochs=1000,
     stochastic_weight_avg=True,
 )
 model = GraphLogModel(

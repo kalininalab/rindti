@@ -11,6 +11,8 @@ from torch_geometric.data import Data, DataLoader
 
 from ..layers import GINConvNet, GMTNet
 from .base_model import BaseModel
+import numpy as np
+import torch.nn.functional as F
 
 # NCE loss between graphs and prototypes
 
@@ -45,77 +47,6 @@ class GraphLogModel(BaseModel):
         self.node_embed = GINConvNet(64, 64, 64, num_layers=5)
         self.pool = GMTNet(64, 64, 64, ratio=0.15)
         self.proj = torch.nn.Sequential(torch.nn.Linear(64, 128), torch.nn.ReLU(), torch.nn.Linear(128, 64))
-
-    def predict(self, x, edge_index):
-        x = self.feat_embed(x)
-        x = self.node_embed(x, edge_index, batch=None)
-        x = self.pool(x, edge_index, batch=None)
-        return x.detach().numpy()
-
-    def mask_nodes(self, batch: Data):
-        masked_node_indices = []
-        # select indices of masked nodes
-        for i in range(batch.batch[-1] + 1):
-            idx = torch.nonzero((batch.batch == i).float()).squeeze(-1)
-            num_node = idx.shape[0]
-            sample_size = ceil(num_node * self.mask_rate)
-            masked_node_idx = random.sample(idx.tolist(), sample_size)
-            masked_node_idx.sort()
-            masked_node_indices += masked_node_idx
-
-        batch.masked_node_indices = torch.tensor(masked_node_indices, device=self.device)
-
-        # mask nodes' features
-        for node_idx in masked_node_indices:
-            batch.x[node_idx] = torch.zeros_like(batch.x[node_idx])
-
-        return batch
-
-    def intra_NCE_loss(self, node_reps, node_modify_reps, batch, tau=0.04, epsilon=1e-6):
-        node_reps_norm = torch.norm(node_reps, dim=1).unsqueeze(-1)
-        node_modify_reps_norm = torch.norm(node_modify_reps, dim=1).unsqueeze(-1)
-        sim = torch.mm(node_reps, node_modify_reps.t()) / (
-            torch.mm(node_reps_norm, node_modify_reps_norm.t()) + epsilon
-        )
-        exp_sim = torch.exp(sim / tau)
-
-        mask = torch.stack([(batch.batch == i).float() for i in batch.batch.tolist()], dim=1).to(self.device)
-        exp_sim_mask = exp_sim * mask
-        exp_sim_all = torch.index_select(exp_sim_mask, 1, batch.masked_node_indices)
-        exp_sim_positive = torch.index_select(exp_sim_all, 0, batch.masked_node_indices)
-        positive_ratio = exp_sim_positive.sum(0) / (exp_sim_all.sum(0) + epsilon)
-
-        return -torch.log(positive_ratio).sum() / batch.masked_node_indices.shape[0]
-
-    def inter_NCE_loss(self, graph_reps, graph_modify_reps, tau=0.04, epsilon=1e-6):
-        graph_reps_norm = torch.norm(graph_reps, dim=1).unsqueeze(-1)
-        graph_modify_reps_norm = torch.norm(graph_modify_reps, dim=1).unsqueeze(-1)
-        sim = torch.mm(graph_reps, graph_modify_reps.t()) / (
-            torch.mm(graph_reps_norm, graph_modify_reps_norm.t()) + epsilon
-        )
-        exp_sim = torch.exp(sim / tau)
-
-        mask = torch.eye(graph_reps.shape[0], device=self.device)
-        positive = (exp_sim * mask).sum(0)
-        negative = (exp_sim * (1 - mask)).sum(0)
-        positive_ratio = positive / (positive + negative + epsilon)
-
-        return -torch.log(positive_ratio).sum() / graph_reps.shape[0]
-
-    # NCE loss for global-local mutual information maximization
-
-    def gl_NCE_loss(self, node_reps, graph_reps, batch, tau=0.04, epsilon=1e-6):
-        node_reps_norm = torch.norm(node_reps, dim=1).unsqueeze(-1)
-        graph_reps_norm = torch.norm(graph_reps, dim=1).unsqueeze(-1)
-        sim = torch.mm(node_reps, graph_reps.t()) / (torch.mm(node_reps_norm, graph_reps_norm.t()) + epsilon)
-        exp_sim = torch.exp(sim / tau)
-
-        mask = torch.stack([(batch == i).float() for i in range(graph_reps.shape[0])], dim=1)
-        positive = exp_sim * mask
-        negative = exp_sim * (1 - mask)
-        positive_ratio = positive / (positive + negative.sum(0).unsqueeze(0) + epsilon)
-
-        return -torch.log(positive_ratio + (1 - mask)).sum() / node_reps.shape[0]
 
     def proto_NCE_loss(self, graph_reps, tau=0.04, epsilon=1e-6):
         # similarity for original and modified graphs
@@ -192,6 +123,7 @@ class GraphLogModel(BaseModel):
         for _ in range(num_iter):
             for step, batch in enumerate(self.train_dataloader()):
                 # get node and graph representations
+                batch = batch.to(self.device)
                 feat_reps = self.feat_embed(batch.x)
                 node_reps = self.node_embed(feat_reps, batch.edge_index, batch.batch)
                 graph_reps = self.pool(node_reps, batch.edge_index, batch.batch)
@@ -236,34 +168,45 @@ class GraphLogModel(BaseModel):
 
         return proto_selected, proto_connection
 
-    def embed_batch(self, batch: Data) -> Tuple[torch.Tensor, torch.Tensor]:
-        feat_embed = self.feat_embed(batch.x)
-        node_reps = self.node_embed(feat_embed, batch.edge_index, batch.batch)
-        graph_reps = self.pool(node_reps, batch.edge_index, batch.batch)
+    def mask_nodes(self, orig_x, frac):
+        x = deepcopy(orig_x)
+        num_nodes = x.size(0)
+        num_masked_nodes = ceil(num_nodes * frac)
+        masked_idx = np.random.choice(range(num_nodes), num_masked_nodes, replace=False)
+        x[masked_idx] = 20
+        return x, masked_idx
+
+    def intra_NCE_loss(self, node_reps, node_mod_reps, masked_idx):
+        return -torch.log(F.cosine_similarity(node_reps[masked_idx], node_mod_reps[masked_idx]) + 1e-6).sum()
+
+    def inter_NCE_loss(self, graph_reps, graph_mod_reps):
+        return -torch.log(F.cosine_similarity(graph_reps, graph_mod_reps) + 1e-6).sum()
+
+    def embed_batch(self, x, edge_index, batch) -> Tuple[torch.Tensor, torch.Tensor]:
+        feat_embed = self.feat_embed(x)
+        node_reps = self.node_embed(feat_embed, edge_index, batch)
+        graph_reps = self.pool(node_reps, edge_index, batch)
         node_reps = self.proj(node_reps)
         graph_reps = self.proj(graph_reps)
         return node_reps, graph_reps
 
-    def forward(self, batch: Data) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        batch_modify = deepcopy(batch)
-        batch_modify = self.mask_nodes(batch)
-        node_reps, graph_reps = self.embed_batch(batch)
-        node_modify_reps, graph_modify_reps = self.embed_batch(batch_modify)
-        return node_reps, node_modify_reps, graph_reps, graph_modify_reps
+    def forward(self, x, edge_index, batch):
+        x_mod, masked_idx = self.mask_nodes(x, self.mask_rate)
+        node_reps, graph_reps = self.embed_batch(x, edge_index, batch)
+        node_mod_reps, graph_mod_reps = self.embed_batch(x_mod, edge_index, batch)
+        return node_reps, node_mod_reps, graph_reps, graph_mod_reps, masked_idx
 
-    def shared_step(self, batch: Data, proto: bool = True) -> dict:
-        (
-            node_reps_proj,
-            node_modify_reps_proj,
-            graph_reps_proj,
-            graph_modify_reps_proj,
-        ) = self.forward(batch)
-        NCE_intra_loss = self.intra_NCE_loss(node_reps_proj, node_modify_reps_proj, batch)
-        NCE_inter_loss = self.inter_NCE_loss(graph_reps_proj, graph_modify_reps_proj)
+    def shared_step(self, data: Data, proto: bool = True) -> dict:
+        x, edge_index, batch = data.x, data.edge_index, data.batch
+        (node_reps_proj, node_mod_reps_proj, graph_reps_proj, graph_mod_reps_proj, masked_idx) = self.forward(
+            x, edge_index, batch
+        )
+        NCE_intra_loss = self.intra_NCE_loss(node_reps_proj, node_mod_reps_proj, masked_idx)
+        NCE_inter_loss = self.inter_NCE_loss(graph_reps_proj, graph_mod_reps_proj)
         if proto:
             NCE_proto_loss = self.proto_NCE_loss(graph_reps_proj)
         else:
-            NCE_proto_loss = torch.tensor(10, dtype=float)
+            NCE_proto_loss = torch.tensor(10, dtype=float, device=self.device)
         NCE_loss = self.alpha * NCE_intra_loss + self.beta * NCE_inter_loss + self.gamma * NCE_proto_loss
         return {
             "loss": NCE_loss,
@@ -301,7 +244,7 @@ class GraphLogModel(BaseModel):
                 tmp_proto, tmp_proto_connection = self.init_proto(i)
                 self.proto[i] = tmp_proto
                 self.proto_connection.append(tmp_proto_connection)
-
+        torch.cuda.empty_cache()
         return super().training_epoch_end(outputs)
 
     def configure_optimizers(self):
