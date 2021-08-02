@@ -4,6 +4,7 @@ from math import ceil
 from typing import Tuple
 
 import torch
+from torch._C import device
 from torch.nn import Embedding
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -179,14 +180,18 @@ class GraphLogModel(BaseModel):
     def intra_NCE_loss(self, node_reps, node_mod_reps, masked_idx):
         masked_node_reps = node_reps[masked_idx]
         masked_node_mod_reps = node_mod_reps[masked_idx]
-        pos_pairs_sim = 1 - F.cosine_similarity(masked_node_reps, masked_node_mod_reps)
-        neg_pairs_sim = F.cosine_similarity(masked_node_reps, masked_node_mod_reps[torch.randperm(len(masked_idx))])
-        return -torch.log(torch.cat([F.relu(pos_pairs_sim), F.relu(neg_pairs_sim)]) + 1e-6).sum()
+        num_mask = masked_node_reps.size(0)
+        x1 = torch.cat([masked_node_reps, masked_node_reps])
+        x2 = torch.cat([masked_node_mod_reps, masked_node_mod_reps[torch.randperm(num_mask)]])
+        y = torch.cat([torch.ones(num_mask, device=self.device), torch.ones(num_mask, device=self.device) * -1])
+        return F.cosine_embedding_loss(x1, x2, y, margin=0.35)
 
     def inter_NCE_loss(self, graph_reps, graph_mod_reps):
-        pos_pairs_sim = 1 - F.cosine_similarity(graph_reps, graph_mod_reps)
-        neg_pairs_sim = F.cosine_similarity(graph_reps, graph_mod_reps[torch.randperm(graph_reps.size(0))])
-        return -torch.log(torch.cat([pos_pairs_sim, neg_pairs_sim]) + 1e-6).sum()
+        batch_size = graph_reps.size(0)
+        x1 = torch.cat([graph_reps, graph_reps])
+        x2 = torch.cat([graph_mod_reps, graph_mod_reps[torch.randperm(batch_size)]])
+        y = torch.cat([torch.ones(batch_size, device=self.device), torch.ones(batch_size, device=self.device) * -1])
+        return F.cosine_embedding_loss(x1, x2, y, margin=0.35)
 
     def embed_batch(self, x, edge_index, batch) -> Tuple[torch.Tensor, torch.Tensor]:
         feat_embed = self.feat_embed(x)
