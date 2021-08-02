@@ -33,23 +33,6 @@ class TwoGraphData(Data):
         prefix = key[:-lenedg]
         return self.__dict__[prefix + "x"].size(0)
 
-    def nnodes(self, prefix):
-        return self.__dict__[prefix + "x"].size(0)
-
-    def numfeats(self, prefix):
-        """
-        Calculate the feature dimension of one of the graphs.
-        If the features are index-encoded (dtype long, single number for each node, for use with Embedding),
-        then return the max. Otherwise return size(1)
-        :param prefix: str for prefix "drug_", "prot_" or else
-        """
-        x = self.__dict__[prefix + "x"]
-        if len(x.size()) == 1:
-            return x.max().item() + 1
-        if len(x.size()) == 2:
-            return x.size(1)
-        raise ValueError("Too many dimensions in input features")
-
 
 class Dataset(InMemoryDataset):
     """Dataset class inherited from torch_geometric.data.InMemoryDataset
@@ -154,10 +137,11 @@ class PreTrainDataset(InMemoryDataset):
         with open(self.filename, "rb") as file:
             df = pickle.load(file)
             data_list = []
-            for x in df["data"]:
+            for (id, x) in df["data"].to_dict().items():
                 info["max_nodes"] = max(info["max_nodes"], x["x"].size(0))
                 info["feat_dim"] = max(info["feat_dim"], int(x["x"].max()))
                 del x["index_mapping"]
+                x["id"] = id
                 data_list.append(Data(**x))
 
             if self.pre_filter is not None:

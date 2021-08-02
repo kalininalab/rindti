@@ -1,8 +1,9 @@
 import pickle
 import random
-
+import re
+import subprocess
 import numpy as np
-
+import os.path as osp
 from .data import TwoGraphData
 
 
@@ -38,7 +39,7 @@ class GnomadTransformer(object):
             (TwoGraphData): entry with modified protein features
         """
         prot_id = data["prot_id"]
-        if data["prot_id"] not in self.gnomad:
+        if prot_id not in self.gnomad:
             return data
         x = data["prot_x"]
         mutations = self.gnomad[prot_id]
@@ -103,3 +104,20 @@ class RandomTransformer(object):
         with open(filename, "rb") as file:
             all_data = pickle.load(file)
         return RandomTransformer(all_data["encoded_residues"], max_num_mut=max_num_mut)
+
+
+class TMalignTransformer(object):
+    def __init__(self, pdb_folder):
+        self.pdb_folder = pdb_folder
+
+    def __call__(self, data):
+        filename1 = osp.join(self.pdb_folder, data["a_id"])
+        filename2 = osp.join(self.pdb_folder, data["b_id"])
+        data["score"] = self.tmalign(filename1, filename2)
+        return data
+
+    def tmalign(self, filename1, filename2):
+        subproc = subprocess.run(["TMscore", filename1, filename2], capture_output=True, encoding="utf-8")
+        text = subproc.stdout
+        match = re.search(r"TM\-score\s+=\s+(\d\.\d+)", text)
+        return float(match.group(1))

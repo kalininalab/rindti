@@ -37,8 +37,8 @@ class GMTNet(BaseLayer):
         num_nodes = ceil(ratio * max_nodes)
         self.gmpoolg = PMA(input_dim, num_heads, num_nodes, ln=ln, cluster=cluster, mab_conv="GIN")
         num_nodes = ceil(ratio * num_nodes)
-        self.sab = SAB(hidden_dim, hidden_dim, num_heads, ln=ln, cluster=cluster)
-        self.gmpooli = PMA(output_dim, num_heads, 1, ln=ln, cluster=cluster, mab_conv=None)
+        self.sab = SAB(input_dim, output_dim, num_heads, ln=ln, cluster=cluster)
+        self.gmpooli = PMA(hidden_dim, num_heads, 1, ln=ln, cluster=cluster, mab_conv=None)
 
     def forward(self, x: torch.Tensor, edge_index: torch.Tensor, batch: torch.Tensor, **kwargs):
         batch_x, mask = to_dense_batch(x, batch)
