@@ -75,8 +75,7 @@ class RegressionModel(BaseModel):
         drug_embed = self.drug_graph(**drug_data, batch=data.drug_x_batch)
         prot_embed = self.prot_graph(**prot_data, batch=data.prot_x_batch)
         joint_embedding = self.merge_features(drug_embed, prot_embed)
-        logit = self.mlp(joint_embedding)
-        return logit
+        return self.mlp(joint_embedding)
 
     def shared_step(self, data):
         """

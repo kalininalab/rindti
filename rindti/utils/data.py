@@ -67,12 +67,13 @@ class Dataset(InMemoryDataset):
         split: Optional[str] = "train",
         transform=None,
         pre_transform=None,
+        pre_filter=None,
     ):
         basefilename = os.path.basename(filename)
         basefilename = os.path.splitext(basefilename)[0]
         root = os.path.join("data", basefilename)
         self.filename = filename
-        super().__init__(root, transform, pre_transform)
+        super().__init__(root, transform, pre_transform, pre_filter)
         if split == "train":
             self.data, self.slices, self.info = torch.load(self.processed_paths[0])
         elif split == "val":
@@ -107,7 +108,7 @@ class Dataset(InMemoryDataset):
         self.info = dict(prot_max_nodes=0, drug_max_nodes=0, prot_feat_dim=0, drug_feat_dim=0)
         with open(self.filename, "rb") as file:
             all_data = pickle.load(file)
-            for s, split in enumerate(["train", "val", "test"]):
+            for s, split in enumerate(["train", "val", "test"]):  # dumb, but separate loop for train, test and val
                 data_list = []
                 for i in all_data["data"]:
                     if i["split"] != split:
@@ -168,3 +169,13 @@ class PreTrainDataset(InMemoryDataset):
 
             data, slices = self.collate(data_list)
             torch.save((data, slices, info), self.processed_paths[0])
+
+
+def SizeFilter():
+    def __init__(self, max_size: int = None, min_size: int = None):
+        self.max_size = max_size
+        self.min_size = min_size
+
+    def __call__(self, data: TwoGraphData) -> bool:
+        num_nodes = data.x.size(0)
+        return num_nodes <= self.max_size and num_nodes >= self.min_size

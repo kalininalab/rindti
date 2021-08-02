@@ -177,21 +177,20 @@ class GraphLogModel(BaseModel):
         x[masked_idx] = 20
         return x, masked_idx
 
-    def intra_NCE_loss(self, node_reps, node_mod_reps, masked_idx):
-        masked_node_reps = node_reps[masked_idx]
-        masked_node_mod_reps = node_mod_reps[masked_idx]
-        num_mask = masked_node_reps.size(0)
-        x1 = torch.cat([masked_node_reps, masked_node_reps])
-        x2 = torch.cat([masked_node_mod_reps, masked_node_mod_reps[torch.randperm(num_mask)]])
-        y = torch.cat([torch.ones(num_mask, device=self.device), torch.ones(num_mask, device=self.device) * -1])
+    def NCE_loss(self, reps, mod_reps):
+        num = reps.size(0)
+        x1 = torch.cat([reps, reps])
+        x2 = torch.cat([mod_reps, mod_reps[torch.randperm(num)]])
+        y = torch.cat([torch.ones(num, device=self.device), torch.ones(num, device=self.device) * -1])
         return F.cosine_embedding_loss(x1, x2, y, margin=0.35)
 
+    def intra_NCE_loss(self, node_reps, node_mod_reps, masked_idx):
+        node_reps = node_reps[masked_idx]
+        node_mod_reps = node_mod_reps[masked_idx]
+        return self.NCE_loss(node_reps, node_mod_reps)
+
     def inter_NCE_loss(self, graph_reps, graph_mod_reps):
-        batch_size = graph_reps.size(0)
-        x1 = torch.cat([graph_reps, graph_reps])
-        x2 = torch.cat([graph_mod_reps, graph_mod_reps[torch.randperm(batch_size)]])
-        y = torch.cat([torch.ones(batch_size, device=self.device), torch.ones(batch_size, device=self.device) * -1])
-        return F.cosine_embedding_loss(x1, x2, y, margin=0.35)
+        return self.NCE_loss(graph_reps, graph_mod_reps)
 
     def embed_batch(self, x, edge_index, batch) -> Tuple[torch.Tensor, torch.Tensor]:
         feat_embed = self.feat_embed(x)
