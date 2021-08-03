@@ -69,18 +69,29 @@ class SiameseModel(BaseModel):
 
     def shared_step(self, data):
         pred, node_pred, corrupt_idx, idzip = self.forward(data.x, data.edge_index, data.batch, np.asarray(data.id))
-        scores = torch.tensor([self.tmalign(id1, id2) for (id1, id2) in idzip], device=self.device)
+        scores = torch.tensor(self.tmalign_batch(idzip), device=self.device)
         loss = F.mse_loss(pred.squeeze(1), scores)
         node_loss = F.cross_entropy(node_pred[corrupt_idx], data.x[corrupt_idx])
         return {"loss": loss + node_loss * self.alpha, "tmscore_loss": loss, "node_loss": node_loss}
 
-    def tmalign(self, id1, id2):
+    def tmalign_process(self, id1, id2):
         filename1 = osp.join(self.pdb_folder, id1 + ".pdb")
         filename2 = osp.join(self.pdb_folder, id2 + ".pdb")
-        subproc = subprocess.run(["TMscore", filename1, filename2], capture_output=True, encoding="utf-8")
-        text = subproc.stdout
+        return subprocess.Popen(
+            ["/home/ilya/miniconda3/envs/rindti/bin/TMscore", filename1, filename2],
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        )
+
+    def parse_tmalign_output(self, text):
         match = re.search(r"TM\-score\s+=\s+(\d\.\d+)", text)
         return float(match.group(1))
+
+    def tmalign_batch(self, idzip):
+        procs = [self.tmalign_process(id1, id2) for id1, id2 in idzip]
+        for proc in procs:
+            proc.wait()
+        return [self.parse_tmalign_output(x.stdout.read()) for x in procs]
 
     def configure_optimizers(self):
         """

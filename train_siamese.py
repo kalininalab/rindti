@@ -37,5 +37,5 @@ model = SiameseModel(
     alpha=1,
 )
 print(model)
-dl = DataLoader(dataset, batch_size=32, num_workers=4, shuffle=True)
+dl = DataLoader(dataset, batch_size=256, num_workers=4, shuffle=True)
 trainer.fit(model, train_dataloader=dl)
