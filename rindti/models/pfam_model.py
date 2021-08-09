@@ -1,10 +1,13 @@
-from argparse import ArgumentParser
+from typing import Tuple
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.functional import Tensor
 from torch.nn import Embedding
+from torch.optim.adamw import AdamW
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.sgd import SGD
 from torch_geometric.typing import Adj
 from torchmetrics.functional import accuracy, auroc, matthews_corrcoef
 
@@ -91,3 +94,42 @@ class PfamModel(BaseModel):
             "auroc": _auroc,
             "matthews": _mc,
         }
+
+    def training_step(self, data: TwoGraphData, data_idx: int) -> dict:
+        """What to do during training step. Also logs the values for various callbacks.
+
+        Args:
+            data (TwoGraphData): Input data
+            data_idx (int): Number of the batch
+
+        Returns:
+            dict: dictionary with all losses and accuracies
+        """
+        ss = self.shared_step(data)
+        # val_loss has to be logged for early stopping and reduce_lr
+        for key, value in ss.items():
+            self.log("train_" + key, value)
+        return ss
+
+    def configure_optimizers(self) -> Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler._LRScheduler]:
+        """Configure the optimiser and/or lr schedulers
+
+        Returns:
+            Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler._LRScheduler]:
+            tuple of optimiser list and lr_scheduler list
+        """
+        optimiser = AdamW(
+            params=self.parameters(),
+            lr=self.hparams.lr,
+            weight_decay=self.hparams.weight_decay,
+        )
+        lr_scheduler = {
+            "scheduler": ReduceLROnPlateau(
+                optimiser,
+                factor=self.hparams.reduce_lr_factor,
+                patience=self.hparams.reduce_lr_patience,
+                verbose=True,
+            ),
+            "monitor": "train_loss",
+        }
+        return [optimiser], [lr_scheduler]

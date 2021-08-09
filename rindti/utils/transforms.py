@@ -144,7 +144,7 @@ class PfamTransformer(BaseTransformer):
         min_fam_entries (int, optional): Lower cutoff for a family 'too small'. Defaults to 5.
     """
 
-    def __init__(self, merged_df: pd.DataFrame, pos_balance: float = 0.5, min_fam_entries: int = 5):
+    def __init__(self, merged_df: pd.DataFrame, pos_balance: float = 0.7, min_fam_entries: int = 5):
         assert pos_balance >= 0 and pos_balance <= 1, "pos_balance not between 0 and 1!"
         self.pos_balance = pos_balance
         self.merged_df = merged_df
@@ -155,13 +155,21 @@ class PfamTransformer(BaseTransformer):
             self.merged_df.loc[prot_in_small_families, "fam"] = "Other"
 
     def __call__(self, data: Data) -> TwoGraphData:
+        """Find a matching graph pair for this protein
+
+        Args:
+            data (Data): Protein data (has to contain id field for this to work)
+
+        Returns:
+            TwoGraphData: all features of original graph become 'a_<feature>', all features of the pair are 'b_<feature>'
+        """
         family = self.merged_df.loc[data.id, "fam"]
         new_data = add_arg_prefix("a_", data)
         if family == "Other":  # If from a small family only negative samples are allowed
             label = 0
         else:
             label = np.random.choice([True, False], size=1, p=[self.pos_balance, 1 - self.pos_balance])
-        if label:
+        if label == 1:
             new_data.update(add_arg_prefix("b_", self._get_pos_sample(family)))
         else:
             new_data.update(add_arg_prefix("b_", self._get_neg_sample(family)))
@@ -169,17 +177,47 @@ class PfamTransformer(BaseTransformer):
         return TwoGraphData(**new_data)
 
     def _process_sampled_row(self, sampled_row: pd.Series) -> dict:
+        """Helper function for other processes, given a sampled row extract data from it"""
         data = sampled_row["data"]
         data["id"] = sampled_row.name
         return data
 
     def _get_pos_sample(self, family: str) -> dict:
-        sampled_row = self.merged_df[self.merged_df["fam"] != family].sample().iloc[0]
-        return self._process_sampled_row(sampled_row)
+        """Get a positive match for given family (protein from same family)
 
-    def _get_neg_sample(self, family: str) -> dict:
+        Args:
+            family (str): Family name
+
+        Returns:
+            dict: data of protein from same family (can be the same protein!)
+        """
         sampled_row = self.merged_df[self.merged_df["fam"] == family].sample().iloc[0]
         return self._process_sampled_row(sampled_row)
 
+    def _get_neg_sample(self, family: str) -> dict:
+        """Get a negative match for given family (protein from another family)
+
+        Args:
+            family (str): Family name
+
+        Returns:
+            dict: data of protein from another family
+        """
+        sampled_row = self.merged_df[self.merged_df["fam"] != family].sample().iloc[0]
+        return self._process_sampled_row(sampled_row)
+
     def _filter(self, data: Data) -> bool:
+        """Returns True if graph in self.merged_df else False"""
         return data.id in self.merged_df.index
+
+
+class SizeFilter(object):
+    def __init__(self, max_nnodes: int, min_nnodes: int = 0):
+        """Filters out graph that are too big/small"""
+        self.max_nnodes = max_nnodes
+        self.min_nnodes = min_nnodes
+
+    def __call__(self, data: Data) -> bool:
+        """Returns True if number of nodes in given graph is within required values else False"""
+        nnodes = data.x.size(0)
+        return nnodes > self.min_nnodes and nnodes < self.max_nnodes

@@ -13,6 +13,7 @@ with open(sys.argv[1], "rb") as file:
     merged_df = pickle.load(file)
 transformer = PfamTransformer(merged_df)
 dataset = PreTrainDataset(sys.argv[1], transform=transformer, pre_filter=transformer._filter)
+
 print(len(dataset))
 logger = TensorBoardLogger("tb_logs", name="pfam", default_hp_metric=False)
 callbacks = [
