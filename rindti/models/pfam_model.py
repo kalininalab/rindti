@@ -28,9 +28,9 @@ class PfamModel(BaseModel):
     def __init__(self, **kwargs):
         super().__init__()
         self.save_hyperparameters()
-        self._determine_feat_method(kwargs["feat_method"], kwargs["drug_hidden_dim"], kwargs["prot_hidden_dim"])
+        self._determine_feat_method(kwargs["feat_method"], kwargs["hidden_dim"], kwargs["hidden_dim"])
         # TODO fix hardcoded values
-        self.feat_embed = Embedding(20, kwargs["prot_node_embed_dim"])
+        self.feat_embed = Embedding(20, kwargs["node_embed_dim"])
         self.node_embed = node_embedders[kwargs["node_embed"]](
             kwargs["node_embed_dim"], kwargs["hidden_dim"], **kwargs
         )
@@ -49,19 +49,7 @@ class PfamModel(BaseModel):
         b_batch: Tensor,
         *args,
     ) -> Tensor:
-        """Forward pass of the model
 
-        Args:
-            prot_x (Tensor): Protein node features
-            drug_x (Tensor): Drug node features
-            prot_edge_index (Adj): Protein edge info
-            drug_edge_index (Adj): Drug edge info
-            prot_batch (Tensor): Protein batch
-            drug_batch (Tensor): Drug batch
-
-        Returns:
-            (Tensor): Final prediction
-        """
         a_x = self.feat_embed(a_x)
         b_x = self.feat_embed(b_x)
         a_x = self.node_embed(a_x, a_edge_index, a_batch)

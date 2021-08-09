@@ -167,12 +167,14 @@ class PreTrainDataset(InMemoryDataset):
         pre_transform (Callable, optional): pre-transformer to apply once before. Defaults to None.
     """
 
-    def __init__(self, filename: str, transform: Callable = None, pre_transform: Callable = None):
+    def __init__(
+        self, filename: str, transform: Callable = None, pre_transform: Callable = None, pre_filter: Callable = None
+    ):
         basefilename = os.path.basename(filename)
         basefilename = os.path.splitext(basefilename)[0]
         root = os.path.join("data", basefilename)
         self.filename = filename
-        super().__init__(root, transform, pre_transform)
+        super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices, self.info = torch.load(self.processed_paths[0])
 
     @property

@@ -172,4 +172,4 @@ class PfamTransformer(BaseTransformer):
         return self._process_sampled_row(sampled_row)
 
     def _filter(self, data: Data) -> bool:
-        return data["id"] in self.uniprot_dict.keys()
+        return data.id in self.merged_df.index
