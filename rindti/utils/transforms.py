@@ -1,10 +1,12 @@
 import pickle
 import random
-from os import stat
 
 import numpy as np
+import pandas as pd
+from torch_geometric.data.data import Data
 
 from .data import TwoGraphData
+from .utils import add_arg_prefix
 
 
 class BaseTransformer(object):
@@ -130,3 +132,44 @@ class RandomTransformer(BaseTransformer):
         with open(filename, "rb") as file:
             all_data = pickle.load(file)
         return RandomTransformer(all_data["encoded_residues"], max_num_mut=max_num_mut)
+
+
+class PfamTransformer(BaseTransformer):
+    def __init__(self, merged_df: pd.DataFrame, pos_balance: float = 0.5, min_fam_entries: int = 5):
+        assert pos_balance >= 0 and pos_balance <= 1, "pos_balance not between 0 and 1!"
+        self.pos_balance = pos_balance
+        self.merged_df = merged_df
+        if min_fam_entries:
+            vc = self.merged_df["fam"].value_counts()
+            small_families = vc[vc < min_fam_entries].index
+            prot_in_small_families = self.merged_df[self.merged_df["fam"].isin(small_families)].index
+            self.merged_df.loc[prot_in_small_families, "fam"] = "Other"
+
+    def __call__(self, data: Data) -> TwoGraphData:
+        family = self.merged_df.loc[data.id, "fam"]
+        new_data = add_arg_prefix("a_", data)
+        if family == "Other":  # If from a small family only negative samples are allowed
+            label = 0
+        else:
+            label = np.random.choice([True, False], size=1, p=[self.pos_balance, 1 - self.pos_balance])
+        if label:
+            new_data.update(add_arg_prefix("b_", self._get_pos_sample(family)))
+        else:
+            new_data.update(add_arg_prefix("b_", self._get_neg_sample(family)))
+        return new_data
+
+    def _process_sampled_row(self, sampled_row: pd.Series) -> dict:
+        data = sampled_row["data"]
+        data["id"] = sampled_row.name
+        return data
+
+    def _get_pos_sample(self, family: str) -> dict:
+        sampled_row = self.merged_df[self.merged_df["fam"] != family].sample().iloc[0]
+        return self._process_sampled_row(sampled_row)
+
+    def _get_neg_sample(self, family: str) -> dict:
+        sampled_row = self.merged_df[self.merged_df["fam"] == family].sample().iloc[0]
+        return self._process_sampled_row(sampled_row)
+
+    def _filter(self, data: Data) -> bool:
+        return data["id"] in self.uniprot_dict.keys()

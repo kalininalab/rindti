@@ -10,7 +10,9 @@ from typing import Any, Callable, Iterable, Optional, Union
 
 import numpy as np
 import torch
-from torch_geometric.data import Data, InMemoryDataset
+from torch_geometric.data import Data, Dataset, InMemoryDataset
+
+from .utils import add_arg_prefix
 
 
 class TwoGraphData(Data):
@@ -66,8 +68,8 @@ class TwoGraphData(Data):
         raise ValueError("Too many dimensions in input features")
 
 
-class Dataset(InMemoryDataset):
-    """Dataset class for proteins and drugs
+class DTIDataset(InMemoryDataset):
+    """DTIDataset class for proteins and drugs
 
     Args:
         filename (str): Pickle file that stores the data
@@ -157,11 +159,10 @@ class Dataset(InMemoryDataset):
 
 
 class PreTrainDataset(InMemoryDataset):
-    """Dataset class for pre-training
+    """DTIDataset class for pre-training
 
     Args:
         filename (str): Pickle file that stores the data
-        split (str, optional): Split type ('train', 'val', 'test). Defaults to "train".
         transform (Callable, optional): transformer to apply on each access. Defaults to None.
         pre_transform (Callable, optional): pre-transformer to apply once before. Defaults to None.
     """
@@ -189,10 +190,11 @@ class PreTrainDataset(InMemoryDataset):
         with open(self.filename, "rb") as file:
             df = pickle.load(file)
             data_list = []
-            for x in df["data"]:
+            for id, x in df["data"].to_dict().items():
                 info["max_nodes"] = max(info["max_nodes"], x["x"].size(0))
                 info["feat_dim"] = max(info["feat_dim"], int(x["x"].max()))
                 del x["index_mapping"]
+                x["id"] = id
                 data_list.append(Data(**x))
 
             if self.pre_filter is not None:

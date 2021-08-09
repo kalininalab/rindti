@@ -2,4 +2,5 @@ from .base_model import BaseModel
 from .classification_model import ClassificationModel
 from .graphlog_model import GraphLogModel
 from .noisy_nodes_model import NoisyNodesModel
+from .pfam_model import PfamModel
 from .regression_model import RegressionModel

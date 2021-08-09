@@ -6,7 +6,7 @@ from torch_geometric.data.dataloader import DataLoader
 
 from rindti.models import ClassificationModel, NoisyNodesModel, RegressionModel
 from rindti.utils import fake_data
-from rindti.utils.data import Dataset
+from rindti.utils.data import DTIDataset
 from rindti.utils.transforms import GnomadTransformer, RandomTransformer
 
 
@@ -19,9 +19,9 @@ def train(**kwargs):
         )
     else:
         transform = None
-    train = Dataset(kwargs["data"], split="train", transform=transform)
-    val = Dataset(kwargs["data"], split="val")
-    test = Dataset(kwargs["data"], split="test")
+    train = DTIDataset(kwargs["data"], split="train", transform=transform)
+    val = DTIDataset(kwargs["data"], split="val")
+    test = DTIDataset(kwargs["data"], split="test")
 
     kwargs.update(
         dict(
