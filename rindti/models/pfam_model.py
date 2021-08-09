@@ -35,7 +35,6 @@ class PfamModel(BaseModel):
             kwargs["node_embed_dim"], kwargs["hidden_dim"], **kwargs
         )
         self.pool = poolers[kwargs["pool"]](kwargs["hidden_dim"], kwargs["hidden_dim"], **kwargs)
-        self.drug_pool = poolers[kwargs["pool"]](kwargs["hidden_dim"], kwargs["hidden_dim"], **kwargs)
         mlp_param = remove_arg_prefix("mlp_", kwargs)
         self.mlp = MLP(**mlp_param, input_dim=self.embed_dim, out_dim=1)
 
@@ -75,6 +74,7 @@ class PfamModel(BaseModel):
             data.a_edge_index,
             data.b_edge_index,
             data.a_x_batch,
+            data.b_x_batch,
         )
         labels = data.label.unsqueeze(1)
         loss = F.binary_cross_entropy(output, labels.float())
@@ -91,43 +91,3 @@ class PfamModel(BaseModel):
             "auroc": _auroc,
             "matthews": _mc,
         }
-
-    @staticmethod
-    def add_arguments(parser: ArgumentParser) -> ArgumentParser:
-        """Generate arguments for this module
-
-        Args:
-            parser (ArgumentParser): Parent parser
-
-        Returns:
-            ArgumentParser: Updated parser
-        """
-        # Hack to find which embedding are used and add their arguments
-        tmp_parser = ArgumentParser(add_help=False)
-        tmp_parser.add_argument("--drug_node_embed", type=str, default="chebconv")
-        tmp_parser.add_argument("--prot_node_embed", type=str, default="chebconv")
-        tmp_parser.add_argument("--prot_pool", type=str, default="gmt")
-        tmp_parser.add_argument("--drug_pool", type=str, default="gmt")
-
-        args = tmp_parser.parse_known_args()[0]
-        prot_node_embed = node_embedders[args.prot_node_embed]
-        drug_node_embed = node_embedders[args.drug_node_embed]
-        prot_pool = poolers[args.prot_pool]
-        drug_pool = poolers[args.drug_pool]
-        prot = parser.add_argument_group("Prot", prefix="--prot_")
-        drug = parser.add_argument_group("Drug", prefix="--drug_")
-        prot.add_argument("node_embed", default="chebconv")
-        prot.add_argument("node_embed_dim", default=16, type=int, help="Size of aminoacid embedding")
-        drug.add_argument("node_embed", default="chebconv")
-        drug.add_argument(
-            "node_embed_dim",
-            default=16,
-            type=int,
-            help="Size of atom element embedding",
-        )
-
-        prot_node_embed.add_arguments(prot)
-        drug_node_embed.add_arguments(drug)
-        prot_pool.add_arguments(prot)
-        drug_pool.add_arguments(drug)
-        return parser

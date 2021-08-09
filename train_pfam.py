@@ -28,6 +28,7 @@ trainer = Trainer(
     gradient_clip_val=30,
     max_epochs=100,
     stochastic_weight_avg=True,
+    profiler="pytorch",
 )
 model = PfamModel(
     node_embed_dim=32,
@@ -44,5 +45,5 @@ model = PfamModel(
     reduce_lr_factor=0.1,
     hidden_dim=32,
 )
-dl = DataLoader(dataset, batch_size=32, num_workers=1, shuffle=True, follow_batch=["a_x", "b_x"])
+dl = DataLoader(dataset, batch_size=8, num_workers=4, shuffle=True, follow_batch=["a_x", "b_x"])
 trainer.fit(model, train_dataloader=dl)

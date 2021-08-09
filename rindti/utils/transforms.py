@@ -3,6 +3,7 @@ import random
 
 import numpy as np
 import pandas as pd
+import torch
 from torch_geometric.data.data import Data
 
 from .data import TwoGraphData
@@ -135,6 +136,14 @@ class RandomTransformer(BaseTransformer):
 
 
 class PfamTransformer(BaseTransformer):
+    """For given protein uniprot id, find a negative or positive match
+
+    Args:
+        merged_df (pd.DataFrame): Has to contain 'fam' that defines the family and 'data' with normal torch_geometric data
+        pos_balance (float, optional): How often to pick positive matches. Defaults to 0.5.
+        min_fam_entries (int, optional): Lower cutoff for a family 'too small'. Defaults to 5.
+    """
+
     def __init__(self, merged_df: pd.DataFrame, pos_balance: float = 0.5, min_fam_entries: int = 5):
         assert pos_balance >= 0 and pos_balance <= 1, "pos_balance not between 0 and 1!"
         self.pos_balance = pos_balance
@@ -156,7 +165,8 @@ class PfamTransformer(BaseTransformer):
             new_data.update(add_arg_prefix("b_", self._get_pos_sample(family)))
         else:
             new_data.update(add_arg_prefix("b_", self._get_neg_sample(family)))
-        return new_data
+        new_data["label"] = torch.tensor(label, dtype=torch.long)
+        return TwoGraphData(**new_data)
 
     def _process_sampled_row(self, sampled_row: pd.Series) -> dict:
         data = sampled_row["data"]
