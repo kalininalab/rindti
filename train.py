@@ -30,6 +30,9 @@ def train(**kwargs):
     train = Dataset(kwargs["data"], split="train", transform=transform)
     val = Dataset(kwargs["data"], split="val")
     test = Dataset(kwargs["data"], split="test")
+    print("Train-Samples:", len(train))
+    print("Validation Samples:", len(val))
+    print("Test Samples:", len(test))
 
     kwargs.update(train.config)
     logger = TensorBoardLogger(
@@ -46,6 +49,7 @@ def train(**kwargs):
         gradient_clip_val=kwargs["gradient_clip_val"],
         deterministic=True,
         profiler=kwargs["profiler"],
+        log_every_n_steps=30,
     )
     model = models[kwargs["model"]](**kwargs)
     dataloader_kwargs = {k: v for (k, v) in kwargs.items() if k in ["batch_size", "num_workers"]}
