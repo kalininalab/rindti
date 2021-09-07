@@ -1,6 +1,7 @@
 import pickle
 from typing import Iterable
 
+import numpy as np
 import pandas as pd
 from pandas.core.frame import DataFrame
 from prepare_drugs import edge_encoding as drug_edge_encoding
@@ -11,10 +12,9 @@ from prepare_proteins import node_encoding as prot_node_encoding
 
 def process(row: pd.Series) -> dict:
     """Process each interaction, drugs encoded as graphs"""
-    split = row["split"]
     return {
         "label": row["Y"],
-        "split": split,
+        "split": row["split"],
         "prot_id": row["Target_ID"],
         "drug_id": row["Drug_ID"],
     }
@@ -43,6 +43,30 @@ def update_config(config: dict) -> dict:
     return config
 
 
+def augment(df: DataFrame, config: dict):
+    if config["parse_dataset"]["augment"] == 0:
+        return
+    proteins = list(df["Target_ID"].unique())
+    drugs = list(df["Drug_ID"].unique())
+    number = config["parse_dataset"]["augment"] * len(df)
+
+    # assign splits aka "train", "test", "val"
+    splitting = lambda x: "train" if x < config["split"]["train"] else \
+        ("val" if x < config["split"]["train"] + config["split"]["val"] else "test")
+
+    for _ in range(number):
+        prot = proteins[np.random.randint(0, len(proteins))]
+        drug = drugs[np.random.randint(0, len(drugs))]
+
+        print(len(df[(df["Target_ID"] == prot) & (df["Drug_ID"] == drug)]))
+        while len(df[(df["Target_ID"] == prot) & (df["Drug_ID"] == drug)]) > 0:
+            prot = proteins[np.random.randint(0, len(proteins))]
+            drug = drugs[np.random.randint(0, len(drugs))]
+
+        df.append({"Target_ID": prot, "Drug_ID": drug,
+                   "split": splitting(np.random.random()), "Y": 1}, ignore_index=True)
+
+
 if __name__ == "__main__":
 
     interactions = pd.read_csv(snakemake.input.inter, sep="\t")
@@ -61,6 +85,9 @@ if __name__ == "__main__":
     prots["data"] = prots["data"].apply(del_index_mapping)
     prots = prots[prots.index.isin(interactions["Target_ID"])]
     drugs = drugs[drugs.index.isin(interactions["Drug_ID"])]
+
+    augment(interactions, snakemake.config)
+    print(interactions.shape)
     full_data = process_df(interactions)
     config = update_config(snakemake.config)
 

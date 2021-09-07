@@ -34,6 +34,8 @@ parse_dataset:
   filtering: all
   # classification or regression
   task: classification
+  # artificial data
+  augment: 1
   # threshold values for classification problem
   threshold: 0.5
   # Whether to apply logarithm with base of 10 to values (for regression, doesn't affect threshold  )
