@@ -8,41 +8,43 @@ report: "report/workflow.rst"
 configfile: "config/config.yaml"
 
 
-targets = [x.split(".")[0] for x in os.listdir("resources/structures") if x.endswith(".pdb")]
+source = config["source"][:-1] if config["source"][-1] == "/" else config["source"]
+target = config["target"][:-1] if config["target"][-1] == "/" else config["target"]
+targets = [x.split(".")[0] for x in os.listdir(source + "/structures") if x.endswith(".pdb")]
 
 if config["structures"] == "whole":
-    rinerator_input = "resources/structures/{protein}.pdb"
-    rinerator_output = "results/rinerator_whole/{protein}/{protein}_h.sif"
+    rinerator_input = source + "/structures/{protein}.pdb"
+    rinerator_output = target + "/rinerator_whole/{protein}/{protein}_h.sif"
     script_output = ""
 elif config["structures"] == "template":
-    rinerator_input = "results/parsed_structures_template/{protein}.pdb"
-    rinerator_output = "results/rinerator_template/{protein}/{protein}_h.sif"
-    script_output = "results/pymol_template/{protein}.pml"
+    rinerator_input = target + "/parsed_structures_template/{protein}.pdb"
+    rinerator_output = target + "/rinerator_template/{protein}/{protein}_h.sif"
+    script_output = target + "/pymol_template/{protein}.pml"
 elif config["structures"] == "bsite":
-    rinerator_input = "results/parsed_structures_bsite/{protein}.pdb"
-    rinerator_output = "results/rinerator_bsite/{protein}/{protein}_h.sif"
-    script_output = "results/pymol_bsite/{protein}.pml"
+    rinerator_input = target + "/parsed_structures_bsite/{protein}.pdb"
+    rinerator_output = target + "/rinerator_bsite/{protein}/{protein}_h.sif"
+    script_output = target + "/pymol_bsite/{protein}.pml"
 else:
     raise ValueError("Unknown structure argument!")
 
 
-protein_output = "results/prepare_proteins/protein_data_{structures}_{node_feats}_{edge_feats}.pkl".format(
+protein_output = target + "/prepare_proteins/protein_data_{structures}_{node_feats}_{edge_feats}.pkl".format(
     structures=config["structures"],
     node_feats=config["prepare_proteins"]["node_feats"],
     edge_feats=config["prepare_proteins"]["edge_feats"],
 )
 
-split_data = "results/split_data/{split}_{filtering}_{task}_split.csv".format(
+split_data = target + "/split_data/{split}_{filtering}_{task}_split.csv".format(
     split=config["split"]["method"],
     filtering=config["parse_dataset"]["filtering"],
     task=config["parse_dataset"]["task"],
 )
 
-transformer_output = "results/prepare_transformer/{node_feats}_transformer.pkl".format(
+transformer_output = target + "/prepare_transformer/{node_feats}_transformer.pkl".format(
     node_feats=config["prepare_proteins"]["node_feats"]
 )
 
-final_output = "results/prepare_all/{split}_{filtering}_{task}_{structures}_{node_feats}_{edge_feats}.pkl".format(
+final_output = target + "/prepare_all/{split}_{filtering}_{task}_{structures}_{node_feats}_{edge_feats}.pkl".format(
     split=config["split"]["method"],
     structures=config["structures"],
     task=config["parse_dataset"]["task"],
@@ -52,29 +54,29 @@ final_output = "results/prepare_all/{split}_{filtering}_{task}_{structures}_{nod
 )
 
 plot_output = final_output.split("/")[-1].split(".")[0]
-plot_output = "report/plot_summary/{out}.html".format(out=plot_output)
+plot_output = target + "/plot_summary/{out}.html".format(out=plot_output)
 
 
 output = [final_output, plot_output]
 
 ### CHECK IF FILES ARE PRESENT ###
 
-if osp.isdir("resources/templates"):
-    templates = expand("resources/templates/{template}", template=os.listdir("resources/templates"))
+if osp.isdir(source + "/templates"):
+    templates = expand(source + "/templates/{template}", template=os.listdir(source + "templates"))
 else:
     if not config["only_proteins"] and config["structures"] != "whole":
         raise ValueError("No templates available")
     templates = []
 
-if osp.isfile("resources/gnomad.csv"):
-    gnomad = "resources/gnomad.csv"
+if osp.isfile(source + "/gnomad.csv"):
+    gnomad = source + "/gnomad.csv"
     output.append(transformer_output)
 else:
     print("No gnomad available, can't create gnomad transformer")
     gnomad = []
 
-if osp.isdir("resources/drugs"):
-    drugs = {x: "resources/drugs/{x}.tsv".format(x=x) for x in ["inter", "lig"]}
+if osp.isdir(source + "/drugs"):
+    drugs = {x: source + "/drugs/{x}.tsv".format(x=x) for x in ["inter", "lig"]}
 else:
     if not config["only_proteins"]:
         raise ValueError("No drug interaction data available, can't calculate final data!")
@@ -91,11 +93,11 @@ rule all:
 
 rule create_scripts_bsite:
     input:
-        expand("resources/structures/{protein}.pdb", protein=targets),
+        expand("{resources}/structures/{protein}.pdb", resources=source, protein=targets),
     output:
-        scripts=expand("results/pymol_bsite/{protein}.pml", protein=targets),
+        scripts=expand("{results}/pymol_bsite/{protein}.pml", results=target, protein=targets),
     log:
-        "results/logs/pymol_bsite.log",
+        expand("{results}/logs/pymol_bsite.log", results=target),
     params:
         radius=config["bsite"]["radius"],
     message:
@@ -106,11 +108,11 @@ rule create_scripts_bsite:
 
 rule create_scripts_template:
     input:
-        expand("resources/structures/{protein}.pdb", protein=targets),
+        expand("{resources}/structures/{protein}.pdb", resources=source, protein=targets),
     output:
-        scripts=expand("results/pymol_template/{protein}.pml", protein=targets),
+        scripts=expand("{results}/pymol_template/{protein}.pml", results=target, protein=targets),
     log:
-        "results/logs/pymol_template.log",
+        expand("{results}/logs/pymol_template.log", results=target),
     params:
         radius=config["template"]["radius"],
     message:
@@ -122,11 +124,11 @@ rule create_scripts_template:
 rule run_pymol:
     input:
         script=script_output,
-        struct="resources/structures/{protein}.pdb",
+        struct=expand("{resources}/structures/{protein}.pdb", resources=source),
     output:
         structures=rinerator_input,
     log:
-        "results/logs/run_pymol/{protein}.log",
+        expand("{results}/logs/run_pymol/{protein}.log", results=target),
     conda:
         "envs/pymol.yml"
     message:
@@ -143,9 +145,9 @@ rule rinerator:
     output:
         sif=rinerator_output,
     log:
-        "results/logs/rinerator/{protein}.log",
+        expand("{results}/logs/rinerator/{protein}.log", results=target),
     params:
-        dir="results/rinerator_{structures}".format(structures=config["structures"]),
+        dir="{results}/rinerator_{structures}".format(results=target, structures=config["structures"]),
     message:
         "Running RINerator for {wildcards.protein}, logs are in {log}"
     shadow:
@@ -159,8 +161,8 @@ rule parse_dataset:
         lig=drugs["lig"],
         inter=drugs["inter"],
     output:
-        lig="results/parse_dataset/{filtering}_lig.csv".format(filtering=config["parse_dataset"]["filtering"]),
-        inter="results/parse_dataset/{filtering}_inter.csv".format(filtering=config["parse_dataset"]["filtering"]),
+        lig="{results}/parse_dataset/{filtering}_lig.csv".format(results=target, filtering=config["parse_dataset"]["filtering"]),
+        inter="{results}/parse_dataset/{filtering}_inter.csv".format(results=target, filtering=config["parse_dataset"]["filtering"]),
     message:
         """Parsing the dataset
 
@@ -195,7 +197,8 @@ rule split_data:
         inter=rules.parse_dataset.output.inter,
         lig=rules.parse_dataset.output.lig,
     output:
-        split_data="results/split_data/{split}_{filtering}_split.csv".format(
+        split_data="{results}/split_data/{split}_{filtering}_split.csv".format(
+            results=target,
             split=config["split"]["method"],
             filtering=config["parse_dataset"]["filtering"],
         ),
@@ -209,7 +212,7 @@ rule prepare_drugs:
     input:
         lig=rules.parse_dataset.output.lig,
     output:
-        drug_pickle="results/prepare_drugs/drug_data.pkl",
+        drug_pickle="{results}/prepare_drugs/drug_data.pkl".format(results=target),
     message:
         "Encoding the drugs"
     script:

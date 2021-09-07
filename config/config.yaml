@@ -1,3 +1,6 @@
+source: resources
+target: results
+
 bsite:
   # radius (in Angstroms) around ligands for which residues are considered to be part of the binding site
   radius: 5
