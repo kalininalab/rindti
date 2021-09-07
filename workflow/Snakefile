@@ -62,7 +62,7 @@ output = [final_output, plot_output]
 ### CHECK IF FILES ARE PRESENT ###
 
 if osp.isdir(source + "/templates"):
-    templates = expand(source + "/templates/{template}", template=os.listdir(source + "templates"))
+    templates = expand(source + "/templates/{template}", template=os.listdir(source + "/templates"))
 else:
     if not config["only_proteins"] and config["structures"] != "whole":
         raise ValueError("No templates available")
@@ -124,11 +124,11 @@ rule create_scripts_template:
 rule run_pymol:
     input:
         script=script_output,
-        struct=expand("{resources}/structures/{protein}.pdb", resources=source),
+        struct=source + "/structures/{protein}.pdb",
     output:
         structures=rinerator_input,
     log:
-        expand("{results}/logs/run_pymol/{protein}.log", results=target),
+        target + "/logs/run_pymol/{protein}.log",
     conda:
         "envs/pymol.yml"
     message:
@@ -145,7 +145,7 @@ rule rinerator:
     output:
         sif=rinerator_output,
     log:
-        expand("{results}/logs/rinerator/{protein}.log", results=target),
+        target + "/logs/rinerator/{protein}.log",
     params:
         dir="{results}/rinerator_{structures}".format(results=target, structures=config["structures"]),
     message:
@@ -251,3 +251,4 @@ rule plot_summary:
         html=plot_output,
     script:
         "scripts/plot_summary.py"
+

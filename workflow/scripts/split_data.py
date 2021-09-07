@@ -48,7 +48,7 @@ def split_groups(
     return inter
 
 
-def split_random(inter: pd.DataFrame, train_frac: float = 0.7, val_frac: float = 0.2) -> pd.DataFrame:
+def split_random(inter: pd.DataFrame, train_frac: float = 1/3, val_frac: float = 1/3) -> pd.DataFrame:
     """Split the dataset in a completely random fashion
 
     Args:
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     seed_everything(snakemake.config["seed"])
     lig = pd.read_csv(snakemake.input.lig, sep="\t").set_index("Drug_ID")
     inter = pd.read_csv(snakemake.input.inter, sep="\t")
-
+    
     if snakemake.config["split"]["method"] == "coldtarget":
         inter = split_groups(
             inter,
@@ -93,4 +93,5 @@ if __name__ == "__main__":
         inter = split_random(inter)
     else:
         raise NotImplementedError("Unknown split type!")
+    
     inter.to_csv(snakemake.output.split_data, sep="\t")

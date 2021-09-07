@@ -58,7 +58,6 @@ def augment(df: DataFrame, config: dict):
         prot = proteins[np.random.randint(0, len(proteins))]
         drug = drugs[np.random.randint(0, len(drugs))]
 
-        print(len(df[(df["Target_ID"] == prot) & (df["Drug_ID"] == drug)]))
         while len(df[(df["Target_ID"] == prot) & (df["Drug_ID"] == drug)]) > 0:
             prot = proteins[np.random.randint(0, len(proteins))]
             drug = drugs[np.random.randint(0, len(drugs))]
@@ -87,7 +86,7 @@ if __name__ == "__main__":
     drugs = drugs[drugs.index.isin(interactions["Drug_ID"])]
 
     augment(interactions, snakemake.config)
-    print(interactions.shape)
+    print("Augmented dataset size:", interactions.shape)
     full_data = process_df(interactions)
     config = update_config(snakemake.config)
 
