@@ -1,5 +1,5 @@
 source: resources
-target: results
+target: aug_results
 
 bsite:
   # radius (in Angstroms) around ligands for which residues are considered to be part of the binding site

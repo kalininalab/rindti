@@ -53,8 +53,9 @@ def augment(df: DataFrame, config: dict):
     # assign splits aka "train", "test", "val"
     splitting = lambda x: "train" if x < config["split"]["train"] else \
         ("val" if x < config["split"]["train"] + config["split"]["val"] else "test")
+    art = pd.DataFrame(columns=df.columns)
 
-    for _ in range(number):
+    for i in range(number):
         prot = proteins[np.random.randint(0, len(proteins))]
         drug = drugs[np.random.randint(0, len(drugs))]
 
@@ -62,8 +63,8 @@ def augment(df: DataFrame, config: dict):
             prot = proteins[np.random.randint(0, len(proteins))]
             drug = drugs[np.random.randint(0, len(drugs))]
 
-        df.append({"Target_ID": prot, "Drug_ID": drug,
-                   "split": splitting(np.random.random()), "Y": 1}, ignore_index=True)
+        art.loc[len(art)] = [len(df) + i, drug, prot, 1, splitting(np.random.random())]
+    return art
 
 
 if __name__ == "__main__":
@@ -85,8 +86,8 @@ if __name__ == "__main__":
     prots = prots[prots.index.isin(interactions["Target_ID"])]
     drugs = drugs[drugs.index.isin(interactions["Drug_ID"])]
 
-    augment(interactions, snakemake.config)
-    print("Augmented dataset size:", interactions.shape)
+    interactions = pd.concat([interactions, augment(interactions, snakemake.config)], ignore_index=True)
+
     full_data = process_df(interactions)
     config = update_config(snakemake.config)
 
@@ -98,3 +99,5 @@ if __name__ == "__main__":
     }
     with open(snakemake.output.combined_pickle, "wb") as file:
         pickle.dump(final_data, file, protocol=-1)
+
+

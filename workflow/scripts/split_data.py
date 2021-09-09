@@ -48,7 +48,7 @@ def split_groups(
     return inter
 
 
-def split_random(inter: pd.DataFrame, train_frac: float = 1/3, val_frac: float = 1/3) -> pd.DataFrame:
+def split_random(inter: pd.DataFrame, train_frac: float = 0.7, val_frac: float = 0.2) -> pd.DataFrame:
     """Split the dataset in a completely random fashion
 
     Args:
@@ -60,7 +60,8 @@ def split_random(inter: pd.DataFrame, train_frac: float = 1/3, val_frac: float =
         pd.DataFrame: DataFrame with a new 'split' column
     """
     train, valtest = train_test_split(inter, train_size=train_frac)
-    val, test = train_test_split(valtest, train_size=val_frac)
+    factor = 1 / (1 - train_frac)
+    val, test = train_test_split(valtest, train_size=val_frac * factor)
     train.loc[:, "split"] = "train"
     val.loc[:, "split"] = "val"
     test.loc[:, "split"] = "test"
@@ -90,7 +91,7 @@ if __name__ == "__main__":
             val_frac=snakemake.config["split"]["val"],
         )
     elif snakemake.config["split"]["method"] == "random":
-        inter = split_random(inter)
+        inter = split_random(inter, train_frac=snakemake.config["split"]["train"], val_frac=snakemake.config["split"]["val"])
     else:
         raise NotImplementedError("Unknown split type!")
     
