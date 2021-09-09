@@ -5,6 +5,7 @@ import pandas as pd
 import torch
 from rdkit import Chem
 from rdkit.Chem import rdmolfiles, rdmolops
+from rdkit.Chem.rdchem import ChiralType
 from torch_geometric.data import Data
 from torch_geometric.utils import to_undirected
 
@@ -56,6 +57,21 @@ node_encoding = {
 }
 
 
+glycan_encoding = {
+    "other": [0, 0, 0],
+    6: [1, 0, 0],  # carbon
+    7: [0, 1, 0],  # nitrogen
+    8: [0, 0, 1],  # oxygen
+}
+
+chirality_encoding = {
+    ChiralType.CHI_OTHER: [0, 0],
+    ChiralType.CHI_TETRAHEDRAL_CCW: [1, 0],  # counterclockwise rotation of polarized light -> rotate light to the left
+    ChiralType.CHI_TETRAHEDRAL_CW: [1, 1],  # clockwise rotation of polarized light -> rotate light to the right
+    ChiralType.CHI_UNSPECIFIED: [0, 0],
+}
+
+
 edge_encoding = {
     "SINGLE": 0,
     "DOUBLE": 1,
@@ -93,9 +109,10 @@ def featurize(smiles: str) -> dict:
     for atom in mol.GetAtoms():
         atom_num = atom.GetAtomicNum()
         if atom_num not in node_encoding.keys():
-            atom_features.append(node_encoding["other"])
+            atom_features = node_encoding["other"]
         else:
-            atom_features.append(node_encoding[atom_num])
+            atom_features = node_encoding[atom_num]
+        atom_features += chirality_encoding[atom.GetChiralTag()]
     x = torch.tensor(atom_features, dtype=torch.long)
     edge_index = torch.tensor(edges).t().contiguous()
     edge_feats = torch.tensor(edge_feats, dtype=torch.long)
