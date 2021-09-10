@@ -11,7 +11,7 @@ __pycache__/
 *.pkl
 *.pyc
 data/
+datasets/resources/
+datasets/results/
 report/
-resources/
-results/
 tb_logs/
