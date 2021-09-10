@@ -33,7 +33,8 @@ def train(**kwargs):
     print("Train-Samples:", len(train))
     print("Validation Samples:", len(val))
     print("Test Samples:", len(test))
-
+    print(test.data.y)
+    exit(0)
     kwargs.update(train.config)
     logger = TensorBoardLogger(
         "tb_logs", name=kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0], default_hp_metric=False

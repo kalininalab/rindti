@@ -108,10 +108,10 @@ def featurize(smiles: str) -> dict:
     atom_features = []
     for atom in mol.GetAtoms():
         atom_num = atom.GetAtomicNum()
-        if atom_num not in node_encoding.keys():
-            atom_features = node_encoding["other"]
+        if atom_num not in glycan_encoding.keys():
+            atom_features = glycan_encoding["other"]
         else:
-            atom_features = node_encoding[atom_num]
+            atom_features = glycan_encoding[atom_num]
         atom_features += chirality_encoding[atom.GetChiralTag()]
     x = torch.tensor(atom_features, dtype=torch.long)
     edge_index = torch.tensor(edges).t().contiguous()
