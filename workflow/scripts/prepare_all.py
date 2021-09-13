@@ -44,8 +44,6 @@ def update_config(config: dict) -> dict:
 
 
 def augment(df: DataFrame, config: dict):
-    if config["parse_dataset"]["augment"] == 0:
-        return
     proteins = list(df["Target_ID"].unique())
     drugs = list(df["Drug_ID"].unique())
     number = config["parse_dataset"]["augment"] * len(df)
@@ -86,7 +84,8 @@ if __name__ == "__main__":
     prots = prots[prots.index.isin(interactions["Target_ID"])]
     drugs = drugs[drugs.index.isin(interactions["Drug_ID"])]
 
-    interactions = pd.concat([interactions, augment(interactions, snakemake.config)], ignore_index=True)
+    if snakemake.config["parse_dataset"]["augment"] > 0:
+        interactions = pd.concat([interactions, augment(interactions, snakemake.config)], ignore_index=True)
 
     full_data = process_df(interactions)
     config = update_config(snakemake.config)

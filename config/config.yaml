@@ -1,5 +1,7 @@
-source: resources
-target: aug_results
+source: datasets/resources/gpcr
+target: datasets/results/gpcr
+
+mode: gpcr
 
 bsite:
   # radius (in Angstroms) around ligands for which residues are considered to be part of the binding site
@@ -35,7 +37,7 @@ parse_dataset:
   # classification or regression
   task: classification
   # artificial data
-  augment: 1
+  augment: 0
   # threshold values for classification problem
   threshold: 0.5
   # Whether to apply logarithm with base of 10 to values (for regression, doesn't affect threshold  )
