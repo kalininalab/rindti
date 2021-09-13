@@ -27,17 +27,20 @@ def train(**kwargs):
         )
     else:
         transform = None
-    train = Dataset(kwargs["data"], split="train", transform=transform)
-    val = Dataset(kwargs["data"], split="val")
-    test = Dataset(kwargs["data"], split="test")
+    train = Dataset(kwargs["data"], split="train", name=kwargs["name"], transform=transform)
+    val = Dataset(kwargs["data"], split="val", name=kwargs["name"])
+    test = Dataset(kwargs["data"], split="test", name=kwargs["name"])
     print("Train-Samples:", len(train))
     print("Validation Samples:", len(val))
     print("Test Samples:", len(test))
-    print(test.data.y)
-    exit(0)
+    if kwargs["debug"]:
+        print(test.data.y)
+        exit(0)
+
     kwargs.update(train.config)
     logger = TensorBoardLogger(
-        "tb_logs", name=kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0], default_hp_metric=False
+        save_dir=os.path.join("tb_logs", kwargs["name"]), 
+        name=kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0], default_hp_metric=False
     )
     callbacks = [
         ModelCheckpoint(monitor="val_loss", save_top_k=3, mode="min"),
@@ -80,6 +83,8 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", type=int, default=4, help="number of workers for data loading")
     parser.add_argument("--early_stop_patience", type=int, default=60, help="epochs with no improvement before stop")
     parser.add_argument("--feat_method", type=str, default="element_l1", help="How to combine embeddings")
+    parser.add_argument("--name", type=str, default=None, help="Subdirectory to store the graphs in")
+    parser.add_argument("--debug", type=bool, default=False, help="Flag to turn on the debug mode")
 
     trainer = parser.add_argument_group("Trainer")
     model = parser.add_argument_group("Model")

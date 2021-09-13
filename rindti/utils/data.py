@@ -76,6 +76,7 @@ class Dataset(InMemoryDataset):
         self,
         filename: str,
         split: str = "train",
+        name: str = None,
         transform: Callable = None,
         pre_transform: Callable = None,
         pre_filter: Callable = None,
@@ -84,7 +85,10 @@ class Dataset(InMemoryDataset):
         pre_filter_tag = "" if pre_transform is None else str(pre_filter)
         basefilename = os.path.basename(filename)
         basefilename = os.path.splitext(basefilename)[0]
-        root = os.path.join("data", basefilename + pre_transform_tag + pre_filter_tag)
+        if name is None:
+            root = os.path.join("data", basefilename + pre_transform_tag + pre_filter_tag)
+        else:
+            root = os.path.join("data", name, basefilename + pre_transform_tag + pre_filter_tag)
         self.filename = filename
         super().__init__(root, transform, pre_transform, pre_filter)
         if split == "train":
