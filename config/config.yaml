@@ -39,6 +39,6 @@ parse_dataset:
   # artificial data
   augment: 0
   # threshold values for classification problem
-  threshold: 0.5
+  threshold: 1000
   # Whether to apply logarithm with base of 10 to values (for regression, doesn't affect threshold  )
   log: false

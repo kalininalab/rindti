@@ -34,8 +34,10 @@ def train(**kwargs):
     print("Validation Samples:", len(val))
     print("Test Samples:", len(test))
     if kwargs["debug"]:
-        print(test.data.y)
-        exit(0)
+        for i, batch in enumerate(train):
+            print(batch)
+            if i == 5:
+                exit(0)
 
     kwargs.update(train.config)
     logger = TensorBoardLogger(
@@ -84,7 +86,7 @@ if __name__ == "__main__":
     parser.add_argument("--early_stop_patience", type=int, default=60, help="epochs with no improvement before stop")
     parser.add_argument("--feat_method", type=str, default="element_l1", help="How to combine embeddings")
     parser.add_argument("--name", type=str, default=None, help="Subdirectory to store the graphs in")
-    parser.add_argument("--debug", type=bool, default=False, help="Flag to turn on the debug mode")
+    parser.add_argument("--debug", action='store_true', default=False, help="Flag to turn on the debug mode")
 
     trainer = parser.add_argument_group("Trainer")
     model = parser.add_argument_group("Model")
