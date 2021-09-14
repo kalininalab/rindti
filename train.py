@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from pprint import pprint
+import os
 
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
@@ -27,6 +28,7 @@ def train(**kwargs):
         )
     else:
         transform = None
+    # print(kwargs["data"])
     train = Dataset(kwargs["data"], split="train", name=kwargs["name"], transform=transform)
     val = Dataset(kwargs["data"], split="val", name=kwargs["name"])
     test = Dataset(kwargs["data"], split="test", name=kwargs["name"])
