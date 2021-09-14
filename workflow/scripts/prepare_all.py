@@ -99,5 +99,3 @@ if __name__ == "__main__":
     }
     with open(snakemake.output.combined_pickle, "wb") as file:
         pickle.dump(final_data, file, protocol=-1)
-
-
