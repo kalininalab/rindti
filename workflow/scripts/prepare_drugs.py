@@ -127,8 +127,7 @@ def featurize(smiles: str) -> dict:
 
 
 if __name__ == "__main__":
-
-    ligs = pd.read_csv(snakemake.input.lig, sep="\t").drop_duplicates("Drug_ID").set_index("Drug_ID")
+    ligs = pd.read_csv(snakemake.input.lig, sep="\t", dtype=str).drop_duplicates("Drug_ID").set_index("Drug_ID")
     ligs["data"] = ligs["Drug"].apply(featurize)
     ligs = ligs[ligs["data"].notna()]
 

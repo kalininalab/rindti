@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from pytorch_lightning import seed_everything
 
 
 def split_groups(
@@ -70,11 +71,9 @@ def split_random(inter: pd.DataFrame, train_frac: float = 0.7, val_frac: float =
 
 
 if __name__ == "__main__":
-    from pytorch_lightning import seed_everything
-
     seed_everything(snakemake.config["seed"])
-    lig = pd.read_csv(snakemake.input.lig, sep="\t").set_index("Drug_ID")
-    inter = pd.read_csv(snakemake.input.inter, sep="\t")
+    lig = pd.read_csv(snakemake.input.lig, sep="\t", dtype=str).set_index("Drug_ID")
+    inter = pd.read_csv(snakemake.input.inter, sep="\t", dtype={"Drug_ID": str, "Target_ID": str, "Y": int})
     
     if snakemake.config["split"]["method"] == "coldtarget":
         inter = split_groups(

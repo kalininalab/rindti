@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-inter = pd.read_csv(snakemake.input.inter, sep="\t")
-lig = pd.read_csv(snakemake.input.lig, sep="\t")
+inter = pd.read_csv(snakemake.input.inter, sep="\t", dtype={"Drug_ID": str, "Target_ID": str, "Y": int})
+lig = pd.read_csv(snakemake.input.lig, sep="\t", dtype=str)
 lig.drop_duplicates("Drug_ID", inplace=True)
 
 
@@ -31,8 +31,8 @@ if config["filtering"] == "balanced":
     vc.columns = ["Target_ID", "count"]
     inter = inter.merge(vc, left_on="Target_ID", right_on="Target_ID")
     inter["weight"] = inter["count"].apply(lambda x: 1 / (x ** 2))
-    pos = inter[inter["y"] == 1].sample(min(num_pos, num_neg), weights="weight")
-    neg = inter[inter["y"] == 0].sample(min(num_pos, num_neg), weights="weight")
+    pos = inter[inter["Y"] == 1].sample(min(num_pos, num_neg), weights="weight")
+    neg = inter[inter["Y"] == 0].sample(min(num_pos, num_neg), weights="weight")
     inter = pd.concat([pos, neg]).drop(["y", "weight", "count"], axis=1)
 elif config["filtering"] == "posneg":
     pos = inter[inter["Y"] == 1]["Drug_ID"].unique()

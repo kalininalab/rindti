@@ -66,14 +66,15 @@ def augment(df: DataFrame, config: dict):
 
 
 if __name__ == "__main__":
-
-    interactions = pd.read_csv(snakemake.input.inter, sep="\t")
+    interactions = pd.read_csv(snakemake.input.inter, sep="\t",
+                               dtype={"Drug_ID": str, "Target_ID": str, "Y": int, "Split": str})
 
     with open(snakemake.input.drugs, "rb") as file:
         drugs = pickle.load(file)
 
     with open(snakemake.input.proteins, "rb") as file:
         prots = pickle.load(file)
+
     interactions = interactions[interactions["Target_ID"].isin(prots.index)]
     interactions = interactions[interactions["Drug_ID"].isin(drugs.index)]
     drug_count = interactions["Drug_ID"].value_counts()
