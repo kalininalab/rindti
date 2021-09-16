@@ -6,7 +6,6 @@ import torch
 from rdkit import Chem
 from rdkit.Chem import rdmolfiles, rdmolops
 from rdkit.Chem.rdchem import ChiralType
-from torch_geometric.data import Data
 from torch_geometric.utils import to_undirected
 
 # node_encoding = {0: 'padding',
@@ -56,7 +55,6 @@ node_encoding = {
     34: 13,
 }
 
-
 glycan_encoding = {
     "other": [0, 0, 0],
     6: [1, 0, 0],  # carbon
@@ -70,7 +68,6 @@ chirality_encoding = {
     ChiralType.CHI_TETRAHEDRAL_CW: [1, 1],  # clockwise rotation of polarized light -> rotate light to the right
     ChiralType.CHI_UNSPECIFIED: [0, 0],
 }
-
 
 edge_encoding = {
     "SINGLE": 0,

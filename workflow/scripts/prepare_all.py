@@ -4,6 +4,7 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 from pandas.core.frame import DataFrame
+
 from prepare_drugs import edge_encoding as drug_edge_encoding
 from prepare_drugs import node_encoding as drug_node_encoding
 from prepare_proteins import edge_encoding as prot_edge_encoding
@@ -68,7 +69,7 @@ def augment(df: DataFrame, config: dict):
 if __name__ == "__main__":
     interactions = pd.read_csv(snakemake.input.inter, sep="\t",
                                dtype={"Drug_ID": str, "Target_ID": str, "Y": int, "Split": str})
-    
+
     with open(snakemake.input.drugs, "rb") as file:
         drugs = pickle.load(file)
 
@@ -91,7 +92,6 @@ if __name__ == "__main__":
     full_data = process_df(interactions)
     config = update_config(snakemake.config)
 
-    # print(full_data)
     final_data = {
         "data": full_data,
         "config": config,

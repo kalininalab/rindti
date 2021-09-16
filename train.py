@@ -1,5 +1,4 @@
-from argparse import ArgumentParser
-from pprint import pprint
+import argparse
 import os
 
 from pytorch_lightning import Trainer, seed_everything
@@ -8,13 +7,9 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from torch_geometric.data.dataloader import DataLoader
 
 from rindti.models import ClassificationModel, NoisyNodesClassModel, NoisyNodesRegModel, RegressionModel
+from rindti.utils import MyArgParser
 from rindti.utils.data import Dataset
 from rindti.utils.transforms import GnomadTransformer, RandomTransformer
-
-import argparse
-import pickle
-from rindti.utils import MyArgParser
-import numpy as np
 
 models = {
     "classification": ClassificationModel,
@@ -33,8 +28,6 @@ def train(**kwargs):
         )
     else:
         transform = None
-    data = pickle.load(open(kwargs["data"], 'rb'))["data"]
-    print(np.mean([x["label"] for x in data]), "|", len(data))
     train = Dataset(kwargs["data"], split="train", name=kwargs["name"], transform=transform)
     val = Dataset(kwargs["data"], split="val", name=kwargs["name"])
     test = Dataset(kwargs["data"], split="test", name=kwargs["name"])
@@ -49,7 +42,7 @@ def train(**kwargs):
 
     kwargs.update(train.config)
     logger = TensorBoardLogger(
-        save_dir=os.path.join("tb_logs", kwargs["name"]), 
+        save_dir=os.path.join("tb_logs", kwargs["name"]),
         name=kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0], default_hp_metric=False
     )
     callbacks = [

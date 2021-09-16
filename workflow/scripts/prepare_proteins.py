@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import torch
 from pandas.core.frame import DataFrame
-from torch_geometric.utils import to_undirected
 
 node_encoding = {
     "ala": 0,
