@@ -61,14 +61,14 @@ def augment(df: DataFrame, config: dict):
             prot = proteins[np.random.randint(0, len(proteins))]
             drug = drugs[np.random.randint(0, len(drugs))]
 
-        art.loc[len(art)] = [len(df) + i, drug, prot, 1, splitting(np.random.random())]
+        art.loc[len(art)] = [len(df) + i, drug, prot, 0, splitting(np.random.random())]
     return art
 
 
 if __name__ == "__main__":
     interactions = pd.read_csv(snakemake.input.inter, sep="\t",
                                dtype={"Drug_ID": str, "Target_ID": str, "Y": int, "Split": str})
-    print(interactions)
+    
     with open(snakemake.input.drugs, "rb") as file:
         drugs = pickle.load(file)
 
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     full_data = process_df(interactions)
     config = update_config(snakemake.config)
 
-    print(full_data)
+    # print(full_data)
     final_data = {
         "data": full_data,
         "config": config,

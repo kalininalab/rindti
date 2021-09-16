@@ -11,6 +11,11 @@ from rindti.models import ClassificationModel, NoisyNodesClassModel, NoisyNodesR
 from rindti.utils.data import Dataset
 from rindti.utils.transforms import GnomadTransformer, RandomTransformer
 
+import argparse
+import pickle
+from rindti.utils import MyArgParser
+import numpy as np
+
 models = {
     "classification": ClassificationModel,
     "regression": RegressionModel,
@@ -28,7 +33,8 @@ def train(**kwargs):
         )
     else:
         transform = None
-    # print(kwargs["data"])
+    data = pickle.load(open(kwargs["data"], 'rb'))["data"]
+    print(np.mean([x["label"] for x in data]), "|", len(data))
     train = Dataset(kwargs["data"], split="train", name=kwargs["name"], transform=transform)
     val = Dataset(kwargs["data"], split="val", name=kwargs["name"])
     test = Dataset(kwargs["data"], split="test", name=kwargs["name"])
@@ -70,10 +76,6 @@ def train(**kwargs):
 
 
 if __name__ == "__main__":
-    import argparse
-
-    from rindti.utils import MyArgParser
-
     tmp_parser = argparse.ArgumentParser(add_help=False)
     tmp_parser.add_argument("--model", type=str, default="classification")
     args = tmp_parser.parse_known_args()[0]

@@ -5,7 +5,6 @@ inter = pd.read_csv(snakemake.input.inter, sep="\t", dtype={"Drug_ID": str, "Tar
 lig = pd.read_csv(snakemake.input.lig, sep="\t", dtype=str)
 lig.drop_duplicates("Drug_ID", inplace=True)
 
-
 config = snakemake.config["parse_dataset"]
 # If duplicates, take median of entries
 inter = inter.groupby(["Drug_ID", "Target_ID"]).agg("median").reset_index()
