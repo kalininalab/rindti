@@ -63,10 +63,10 @@ glycan_encoding = {
 }
 
 chirality_encoding = {
-    ChiralType.CHI_OTHER: [0, 0],
-    ChiralType.CHI_TETRAHEDRAL_CCW: [1, 0],  # counterclockwise rotation of polarized light -> rotate light to the left
-    ChiralType.CHI_TETRAHEDRAL_CW: [1, 1],  # clockwise rotation of polarized light -> rotate light to the right
-    ChiralType.CHI_UNSPECIFIED: [0, 0],
+    ChiralType.CHI_OTHER: [0, 0, 0],
+    ChiralType.CHI_TETRAHEDRAL_CCW: [1, 1, 0],  # counterclockwise rotation of polarized light -> rotate light to the left
+    ChiralType.CHI_TETRAHEDRAL_CW: [1, 0, 1],  # clockwise rotation of polarized light -> rotate light to the right
+    ChiralType.CHI_UNSPECIFIED: [0, 0, 0],
 }
 
 edge_encoding = {
@@ -110,12 +110,14 @@ def featurize(smiles: str) -> dict:
                 atom_features.append(node_encoding["other"])
             else:
                 atom_features.append(node_encoding[atom_num])
-        else:
+        elif snakemake.config["mode"] == "lectin":
             if atom_num not in glycan_encoding.keys():
-                atom_features = glycan_encoding["other"]
+                cur_atom_features = glycan_encoding["other"]
             else:
-                atom_features = glycan_encoding[atom_num]
-            atom_features += chirality_encoding[atom.GetChiralTag()]
+                cur_atom_features = glycan_encoding[atom_num]
+            cur_atom_features += chirality_encoding[atom.GetChiralTag()]
+            atom_features.append(cur_atom_features)
+
     x = torch.tensor(atom_features, dtype=torch.long)
     edge_index = torch.tensor(edges).t().contiguous()
     edge_feats = torch.tensor(edge_feats, dtype=torch.long)

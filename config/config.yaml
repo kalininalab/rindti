@@ -2,7 +2,7 @@
 source: datasets/resources/lectin
 target: datasets/results/lectin_gpcr
 
-# mode when embedding the drugs
+# mode when embedding the drugs have to be either >gpcr< or >lectin<
 mode: lectin
 
 bsite:
