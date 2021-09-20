@@ -1,6 +1,6 @@
 # the two root directories to take the data from and to store the data in
 source: datasets/resources/lectin
-target: datasets/results/lectin_gpcr
+target: datasets/results/lectin_aug
 
 # mode when embedding the drugs have to be either >gpcr< or >lectin<
 mode: lectin
