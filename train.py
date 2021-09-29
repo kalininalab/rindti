@@ -61,17 +61,19 @@ def train(**kwargs):
         profiler=kwargs["profiler"],
         log_every_n_steps=30,
     )
-    model = models[kwargs["model"]](**kwargs)
+
     dataloader_kwargs = {k: v for (k, v) in kwargs.items() if k in ["batch_size", "num_workers"]}
     dataloader_kwargs.update({"follow_batch": ["prot_x", "drug_x"]})
     train_dataloader = DataLoader(train, **dataloader_kwargs, shuffle=True)
     val_dataloader = DataLoader(val, **dataloader_kwargs, shuffle=False)
     test_dataloader = DataLoader(test, **dataloader_kwargs, shuffle=False)
+
     for seed in seeds:
         seed_everything(seed)
+        model = models[kwargs["model"]](**kwargs)
         trainer.fit(model, train_dataloader, val_dataloader)
+        trainer.test(model, test_dataloader)
         trainer.save_checkpoint(os.path.join(kwargs["data"], kwargs["name"] + "_" + get_timestamp() + ".ckpt"))
-    trainer.test(model, test_dataloader)
 
 
 def parse_args(predict=False):
