@@ -7,7 +7,7 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 from torch_geometric.data.dataloader import DataLoader
 
-from Lectins.rindti.utils.utils import get_timestamp
+from rindti.utils.utils import get_timestamp
 from rindti.models import ClassificationModel, NoisyNodesClassModel, NoisyNodesRegModel, RegressionModel
 from rindti.utils import MyArgParser
 from rindti.utils.data import Dataset
@@ -24,16 +24,21 @@ models = {
 def train(**kwargs):
     """Train the whole model"""
     seed_everything(kwargs["seed"])
-    seeds = np.random.randint(100, size=kwargs["runs"])
+    tmp = np.arange(100)
+    np.random.shuffle(tmp)
+    seeds = tmp[:kwargs["runs"]]
+
     if kwargs["transformer"] != "none":
         transform = {"gnomad": GnomadTransformer, "random": RandomTransformer}[kwargs["transformer"]].from_pickle(
             kwargs["transformer_pickle"], max_num_mut=kwargs["max_num_mut"]
         )
     else:
         transform = None
+
     train = Dataset(kwargs["data"], split="train", name=kwargs["name"], transform=transform)
     val = Dataset(kwargs["data"], split="val", name=kwargs["name"])
     test = Dataset(kwargs["data"], split="test", name=kwargs["name"])
+
     print("Train-Samples:", len(train))
     print("Validation Samples:", len(val))
     print("Test Samples:", len(test))
@@ -44,36 +49,51 @@ def train(**kwargs):
                 exit(0)
 
     kwargs.update(train.config)
-    logger = TensorBoardLogger(
-        save_dir=os.path.join("tb_logs", kwargs["name"]),
-        name=kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0], default_hp_metric=False
-    )
     callbacks = [
         ModelCheckpoint(monitor="val_loss", save_top_k=3, mode="min"),
         EarlyStopping(monitor="val_loss", patience=kwargs["early_stop_patience"], mode="min"),
     ]
-    trainer = Trainer(
-        gpus=kwargs["gpus"],
-        callbacks=callbacks,
-        logger=logger,
-        gradient_clip_val=kwargs["gradient_clip_val"],
-        deterministic=True,
-        profiler=kwargs["profiler"],
-        log_every_n_steps=30,
-    )
-
+    
     dataloader_kwargs = {k: v for (k, v) in kwargs.items() if k in ["batch_size", "num_workers"]}
     dataloader_kwargs.update({"follow_batch": ["prot_x", "drug_x"]})
-    train_dataloader = DataLoader(train, **dataloader_kwargs, shuffle=True)
-    val_dataloader = DataLoader(val, **dataloader_kwargs, shuffle=False)
-    test_dataloader = DataLoader(test, **dataloader_kwargs, shuffle=False)
+    folder = os.path.join("tb_logs", kwargs["name"], kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0])
+    next_version = str(int([d for d in os.listdir(folder) if "version" in d and os.path.isdir(os.path.join(folder, d))][-1].split("_")[1]) + 1)
 
     for seed in seeds:
+        if kwargs["runs"] == 1:
+            logger = TensorBoardLogger(
+                save_dir=os.path.join("tb_logs", kwargs["name"]), default_hp_metric=False, 
+                name=kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0],
+            )
+        else:
+            logger = TensorBoardLogger(
+                save_dir=os.path.join("tb_logs", kwargs["name"], "version_" + next_version), 
+                name=kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0], 
+                version=seed, default_hp_metric=False,
+            )
+        
+        trainer = Trainer(
+            gpus=kwargs["gpus"],
+            callbacks=callbacks,
+            logger=logger,
+            gradient_clip_val=kwargs["gradient_clip_val"],
+            deterministic=True,
+            profiler=kwargs["profiler"],
+            log_every_n_steps=30,
+            max_epochs=kwargs["max_epochs"],
+        )
+
+        train_dataloader = DataLoader(train, **dataloader_kwargs, shuffle=True)
+        val_dataloader = DataLoader(val, **dataloader_kwargs, shuffle=False)
+        test_dataloader = DataLoader(test, **dataloader_kwargs, shuffle=False)
+        checkpoint_dir = os.path.join("data", kwargs["data"].split("/")[-1].split(".")[0], "checkpoints")
+
+        print("Run with seed", seed)
         seed_everything(seed)
         model = models[kwargs["model"]](**kwargs)
         trainer.fit(model, train_dataloader, val_dataloader)
         trainer.test(model, test_dataloader)
-        trainer.save_checkpoint(os.path.join(kwargs["data"], kwargs["name"] + "_" + get_timestamp() + ".ckpt"))
+        trainer.save_checkpoint(os.path.join(checkpoint_dir, kwargs["name"] + "_" + get_timestamp() + ".ckpt"))
 
 
 def parse_args(predict=False):
@@ -94,7 +114,7 @@ def parse_args(predict=False):
     parser.add_argument("--feat_method", type=str, default="element_l1", help="How to combine embeddings")
     parser.add_argument("--name", type=str, default=None, help="Subdirectory to store the graphs in")
     parser.add_argument("--debug", action='store_true', default=False, help="Flag to turn on the debug mode")
-    parser.add_argument("--runs", default=1, help="Number of runs to perform to get more reliable results")
+    parser.add_argument("--runs", type=int, default=1, help="Number of runs to perform to get more reliable results")
 
     trainer = parser.add_argument_group("Trainer")
     model = parser.add_argument_group("Model")

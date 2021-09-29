@@ -35,7 +35,6 @@ class ClassificationModel(BaseModel):
         else:
             self.drug_feat_embed = self._get_feat_embed(drug_param)
             self.drug_node_embed = self._get_node_embed(drug_param)
-            print(self.drug_node_embed)
             self.drug_pool = self._get_pooler(drug_param)
         self.mlp = self._get_mlp(mlp_param)
 
