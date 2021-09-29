@@ -1,10 +1,13 @@
-from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, _ArgumentGroup
-from random import randint
-from typing import Iterable, Union
+import datetime
 
-import torch
+from argparse import ArgumentParser, _ArgumentGroup
+from typing import Union
 
 from rindti.utils.data import TwoGraphData
+
+
+def get_timestamp():
+    return str(datetime.datetime.now()).replace("-", "").replace(" ", "_").replace(":", "").split(".")[0]
 
 
 def remove_arg_prefix(prefix: str, kwargs: Union[dict, TwoGraphData]) -> dict:
