@@ -1,9 +1,9 @@
 # the two root directories to take the data from and to store the data in
 source: datasets/resources/lectin
-target: datasets/results/lectin_aug
+target: datasets/results/lectin_one
 
 # mode when embedding the drugs have to be either >gpcr< or >lectin<
-mode: lectin
+mode: one
 
 bsite:
   # radius (in Angstroms) around ligands for which residues are considered to be part of the binding site

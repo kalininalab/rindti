@@ -110,12 +110,15 @@ def featurize(smiles: str) -> dict:
                 atom_features.append(node_encoding["other"])
             else:
                 atom_features.append(node_encoding[atom_num])
-        elif snakemake.config["mode"] == "lectin":
+        elif snakemake.config["mode"] in ["lectin", "one"]:
             if atom_num not in glycan_encoding.keys():
                 cur_atom_features = list(glycan_encoding["other"])
             else:
                 cur_atom_features = list(glycan_encoding[atom_num])
-            cur_atom_features += chirality_encoding[atom.GetChiralTag()]
+            
+            if snakemake.config["mode"] == "lectin":
+                cur_atom_features += chirality_encoding[atom.GetChiralTag()]
+            
             atom_features.append(np.array(cur_atom_features))
     
     x = torch.tensor(atom_features, dtype=torch.long)
