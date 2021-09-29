@@ -4,6 +4,7 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 from pandas.core.frame import DataFrame
+from pytorch_lightning import seed_everything
 
 from prepare_drugs import edge_encoding as drug_edge_encoding
 from prepare_drugs import node_encoding as drug_node_encoding
@@ -44,7 +45,7 @@ def update_config(config: dict) -> dict:
     return config
 
 
-def augment(df: DataFrame, config: dict):
+def negative_sampling(df: DataFrame, config: dict):
     proteins = list(df["Target_ID"].unique())
     drugs = list(df["Drug_ID"].unique())
     number = config["parse_dataset"]["augment"] * len(df)
@@ -67,6 +68,7 @@ def augment(df: DataFrame, config: dict):
 
 
 if __name__ == "__main__":
+    seed_everything(snakemake.config["seed"])
     interactions = pd.read_csv(snakemake.input.inter, sep="\t",
                                dtype={"Drug_ID": str, "Target_ID": str, "Y": int, "Split": str})
 
@@ -87,7 +89,7 @@ if __name__ == "__main__":
     drugs = drugs[drugs.index.isin(interactions["Drug_ID"])]
 
     if snakemake.config["parse_dataset"]["augment"] > 0:
-        interactions = pd.concat([interactions, augment(interactions, snakemake.config)], ignore_index=True)
+        interactions = pd.concat([interactions, negative_sampling(interactions, snakemake.config)], ignore_index=True)
 
     full_data = process_df(interactions)
     config = update_config(snakemake.config)
