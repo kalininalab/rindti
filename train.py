@@ -1,11 +1,13 @@
 import argparse
 import os
 
+import numpy as np
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 from torch_geometric.data.dataloader import DataLoader
 
+from Lectins.rindti.utils.utils import get_timestamp
 from rindti.models import ClassificationModel, NoisyNodesClassModel, NoisyNodesRegModel, RegressionModel
 from rindti.utils import MyArgParser
 from rindti.utils.data import Dataset
@@ -22,6 +24,7 @@ models = {
 def train(**kwargs):
     """Train the whole model"""
     seed_everything(kwargs["seed"])
+    seeds = np.random.randint(100, size=kwargs["runs"])
     if kwargs["transformer"] != "none":
         transform = {"gnomad": GnomadTransformer, "random": RandomTransformer}[kwargs["transformer"]].from_pickle(
             kwargs["transformer_pickle"], max_num_mut=kwargs["max_num_mut"]
@@ -64,13 +67,18 @@ def train(**kwargs):
     train_dataloader = DataLoader(train, **dataloader_kwargs, shuffle=True)
     val_dataloader = DataLoader(val, **dataloader_kwargs, shuffle=False)
     test_dataloader = DataLoader(test, **dataloader_kwargs, shuffle=False)
-    trainer.fit(model, train_dataloader, val_dataloader)
+    for seed in seeds:
+        seed_everything(seed)
+        trainer.fit(model, train_dataloader, val_dataloader)
+        trainer.save_checkpoint(os.path.join(kwargs["data"], kwargs["name"] + "_" + get_timestamp() + ".ckpt"))
     trainer.test(model, test_dataloader)
 
 
-if __name__ == "__main__":
+def parse_args(predict=False):
     tmp_parser = argparse.ArgumentParser(add_help=False)
     tmp_parser.add_argument("--model", type=str, default="classification")
+    if predict:
+        tmp_parser.add_argument("-c", "--checkpoint", type=str, required=True)
     args = tmp_parser.parse_known_args()[0]
     model_type = args.model
 
@@ -84,6 +92,7 @@ if __name__ == "__main__":
     parser.add_argument("--feat_method", type=str, default="element_l1", help="How to combine embeddings")
     parser.add_argument("--name", type=str, default=None, help="Subdirectory to store the graphs in")
     parser.add_argument("--debug", action='store_true', default=False, help="Flag to turn on the debug mode")
+    parser.add_argument("--runs", default=1, help="Number of runs to perform to get more reliable results")
 
     trainer = parser.add_argument_group("Trainer")
     model = parser.add_argument_group("Model")
@@ -118,5 +127,9 @@ if __name__ == "__main__":
     parser = models[model_type].add_arguments(parser)
 
     args = parser.parse_args()
-    argvars = vars(args)
+    return vars(args)
+
+
+if __name__ == "__main__":
+    argvars = parse_args()
     train(**argvars)
