@@ -16,22 +16,26 @@ def predict(**kwargs):
     else:
         transform = None
 
-    model = models[kwargs["model"]](**kwargs)
-    model.load_from_checkpoint(kwargs["checkpoint"])
-
     train = Dataset(kwargs["data"], split="train", name=kwargs["name"], transform=transform)
     val = Dataset(kwargs["data"], split="val", name=kwargs["name"])
     test = Dataset(kwargs["data"], split="test", name=kwargs["name"])
+
+    kwargs.update(train.config)
 
     train_loader = DataLoader(train)
     val_loader = DataLoader(val)
     test_loader = DataLoader(test)
 
     trainer = Trainer(
-        gpus=kwargs["gpu"],
+        gpus=kwargs["gpus"],
         deterministic=True,
     )
 
+    model = models[kwargs["model"]](**kwargs)
+    model.load_from_checkpoint(kwargs["checkpoint"])
+
+    print("Start testing")
+    
     train_result = trainer.test(model=model, dataloaders=train_loader)
     val_result = trainer.test(model=model, dataloaders=val_loader)
     test_result = trainer.test(model=model, dataloaders=test_loader)
