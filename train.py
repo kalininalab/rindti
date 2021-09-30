@@ -126,27 +126,36 @@ def train(**kwargs):
 
             print("Print results")
             df = pd.DataFrame(index=list(drug_ids), columns=list(protein_ids))
-            for results in [train_result, val_result, test_results]:
-                for result, graph in results:
+            for results, data in [train_result, val_result, test_results]:
+                # for results, data in [test_results]:
+                for result, graph in zip(results, data):
                     acc = result["acc"].item()
                     label = graph["label"].item()
+                    # print("Label:", result["pred"])
+                    prot_id = graph["prot_id"][0]
+                    drug_id = graph["drug_id"][0]
                     if acc == 1 and label == 1:
-                        df[graph["prot_id"], graph["drug_id"]] = 0
+                        df.at[prot_id, drug_id] = 0
                     if acc == 1 and label == 0:
-                        df[graph["prot_id"], graph["drug_id"]] = 1
+                        df.at[prot_id, drug_id] = 1
                     if acc == 0 and label == 1:
-                        df[graph["prot_id"], graph["drug_id"]] = 2
+                        df.at[prot_id, drug_id] = 2
                     if acc == 0 and label == 0:
-                        df[graph["prot_id"], graph["drug_id"]] = 3
+                        df.at[prot_id, drug_id] = 3
             df.to_csv("./predictions.csv")
 
-            total = [0, 0, 0, 0]
+            total = [0, 0, 0, 0, 0]
             proteins = {}
-            for index, row in df.iterrows():
-                tmp = [0, 0, 0, 0]
+            for index, (_, row) in enumerate(df.iterrows()):
+                tmp = [0, 0, 0, 0, 0]
                 for _, pred in row.iteritems():
+                    if pred != pred:
+                        continue
+                    pred = int(pred)
                     total[pred] += 1
+                    total[-1] += 1
                     tmp[pred] += 1
+                    tmp[-1] += 1
                 print(df.columns[index], ":\t", tmp)
             print("Total :\t", total)
 

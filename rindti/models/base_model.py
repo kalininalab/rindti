@@ -111,6 +111,7 @@ class BaseModel(LightningModule):
             _auroc = torch.tensor(np.nan, device=self.device)
         _mc = matthews_corrcoef(output, labels.squeeze(1), num_classes=2)
         return {
+            "pred": output,
             "acc": acc,
             "auroc": _auroc,
             "matthews": _mc,

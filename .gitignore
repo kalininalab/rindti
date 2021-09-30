@@ -15,3 +15,4 @@ datasets/resources/
 datasets/results/
 report/
 tb_logs/
+lightning_logs/
