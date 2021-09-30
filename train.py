@@ -56,8 +56,20 @@ def train(**kwargs):
     
     dataloader_kwargs = {k: v for (k, v) in kwargs.items() if k in ["batch_size", "num_workers"]}
     dataloader_kwargs.update({"follow_batch": ["prot_x", "drug_x"]})
-    folder = os.path.join("tb_logs", kwargs["name"], kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0])
-    next_version = str(int([d for d in os.listdir(folder) if "version" in d and os.path.isdir(os.path.join(folder, d))][-1].split("_")[1]) + 1)
+    
+    sub_folder = os.path.join("tb_logs", kwargs["name"])
+    folder = os.path.join(sub_folder, kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0])
+    
+    if not os.path.exists(sub_folder):
+        os.mkdir(subfolder)
+
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+
+    if len(os.listdir(folder)) == 0:
+        next_version = "0"
+    else:
+        next_version = str(int([d for d in os.listdir(folder) if "version" in d and os.path.isdir(os.path.join(folder, d))][-1].split("_")[1]) + 1)
 
     for seed in seeds:
         if kwargs["runs"] == 1:
