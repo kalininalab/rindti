@@ -2,6 +2,7 @@ import argparse
 import os
 
 import numpy as np
+import pandas as pd
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
@@ -110,15 +111,44 @@ def train(**kwargs):
         else:
             print("Start testing")
 
-            # train_result = trainer.test(model, train_dataloader)
-            # val_result = trainer.test(model, val_dataloader)
-            test_result = trainer.test(model, test_dataloader)
+            protein_ids, drug_ids = set(), set()
+            for dataset in [train, val, test]:
+                for record in dataset:
+                    protein_ids.add(record["prot_id"])
+                    drug_ids.add(record["drug_id"])
+
+            trainer.test(model, train_dataloader)
+            train_result = model.test_results
+            trainer.test(model, val_dataloader)
+            val_result = model.test_results
+            trainer.test(model, test_dataloader)
+            test_results = model.test_results  # tuple of (predictions and two-graph data)
 
             print("Print results")
+            df = pd.DataFrame(index=list(drug_ids), columns=list(protein_ids))
+            for results in [train_result, val_result, test_results]:
+                for result, graph in results:
+                    acc = result["acc"].item()
+                    label = graph["label"].item()
+                    if acc == 1 and label == 1:
+                        df[graph["prot_id"], graph["drug_id"]] = 0
+                    if acc == 1 and label == 0:
+                        df[graph["prot_id"], graph["drug_id"]] = 1
+                    if acc == 0 and label == 1:
+                        df[graph["prot_id"], graph["drug_id"]] = 2
+                    if acc == 0 and label == 0:
+                        df[graph["prot_id"], graph["drug_id"]] = 3
+            df.to_csv("./predictions.csv")
 
-            # print(train_result)
-            # print(val_result)
-            print("\n".join(str(x["test_correct"]) for x in model.test_results))
+            total = [0, 0, 0, 0]
+            proteins = {}
+            for index, row in df.iterrows():
+                tmp = [0, 0, 0, 0]
+                for _, pred in row.iteritems():
+                    total[pred] += 1
+                    tmp[pred] += 1
+                print(df.columns[index], ":\t", tmp)
+            print("Total :\t", total)
 
             print("Finished")
 
