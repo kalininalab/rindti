@@ -100,19 +100,32 @@ def train(**kwargs):
         test_dataloader = DataLoader(test, **dataloader_kwargs, shuffle=False)
         checkpoint_dir = os.path.join("data", kwargs["data"].split("/")[-1].split(".")[0], "checkpoints")
 
-        print("Run with seed", seed)
         seed_everything(seed)
         model = models[kwargs["model"]](**kwargs)
-        trainer.fit(model, train_dataloader, val_dataloader)
-        trainer.test(model, test_dataloader)
-        trainer.save_checkpoint(os.path.join(checkpoint_dir, kwargs["name"] + "_" + get_timestamp() + ".ckpt"))
+
+        if not kwargs["predict"]:
+            trainer.fit(model, train_dataloader, val_dataloader)
+            trainer.test(model, test_dataloader)
+            trainer.save_checkpoint(os.path.join(checkpoint_dir, kwargs["name"] + "_" + get_timestamp() + ".ckpt"))
+        else:
+            print("Start testing")
+
+            train_result = trainer.test(model, train_dataloader)
+            val_result = trainer.test(model, val_dataloader)
+            test_result = trainer.test(model, test_dataloader)
+
+            print("Print results")
+
+            # print(train_result)
+            # print(val_result)
+            print(test_result)
+
+            print("Finished")
 
 
 def parse_args(predict=False):
     tmp_parser = argparse.ArgumentParser(add_help=False)
     tmp_parser.add_argument("--model", type=str, default="classification")
-    if predict:
-        tmp_parser.add_argument("-c", "--checkpoint", type=str, required=True)
     args = tmp_parser.parse_known_args()[0]
     model_type = args.model
 
@@ -127,10 +140,10 @@ def parse_args(predict=False):
     parser.add_argument("--name", type=str, default=None, help="Subdirectory to store the graphs in")
     parser.add_argument("--debug", action='store_true', default=False, help="Flag to turn on the debug mode")
     parser.add_argument("--runs", type=int, default=1, help="Number of runs to perform to get more reliable results")
-    if predict:
-        parser.add_argument("-c", "--checkpoint", type=str, required=True)
-        parser.add_argument("-l", "--lectin")
-        parser.add_argument("-g", "--glycan")
+    parser.add_argument("--checkpoint", type=str, required=True)
+    parser.add_argument("--lectin")
+    parser.add_argument("--glycan")
+    parser.add_argument("--prediction", action='store_true', default=False)
 
     trainer = parser.add_argument_group("Trainer")
     model = parser.add_argument_group("Model")
