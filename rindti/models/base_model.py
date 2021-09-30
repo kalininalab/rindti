@@ -36,6 +36,7 @@ class BaseModel(LightningModule):
     """
 
     def __init__(self):
+        self.test_results = []
         super().__init__()
 
     def _get_feat_embed(self, params: dict) -> Embedding:
@@ -129,7 +130,7 @@ class BaseModel(LightningModule):
 
     def test_step(self, data: TwoGraphData, data_idx: int) -> dict:
         """What to do during test step"""
-        return self.shared_step(data)
+        return self.shared_step(data), data
 
     def log_histograms(self):
         """Logs the histograms of all the available parameters"""
@@ -159,7 +160,10 @@ class BaseModel(LightningModule):
 
     def test_epoch_end(self, outputs: dict):
         """What to do at the end of a test epoch. Logs everything, saves hyperparameters"""
+        
+        outputs, data = zip(*outputs)
         self.shared_epoch_end(outputs, "test_epoch_", log_hparams=True)
+        self.test_results = (outputs, data)
 
     def configure_optimizers(self) -> Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler._LRScheduler]:
         """Configure the optimiser and/or lr schedulers"""

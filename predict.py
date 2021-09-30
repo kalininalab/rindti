@@ -4,7 +4,7 @@ from torch_geometric.data import DataLoader
 from rindti.utils.data import Dataset
 from rindti.utils.transforms import GnomadTransformer, RandomTransformer
 from train import models, parse_args
-
+from rindti.utils.utils import remove_arg_prefix
 
 def predict(**kwargs):
     seed_everything(kwargs["seed"])
@@ -34,25 +34,26 @@ def predict(**kwargs):
     model = models[kwargs["model"]](**kwargs)
     model.load_from_checkpoint(kwargs["checkpoint"])
 
-    print("Start testing")
+    # print("Start testing")
     
-    train_result = trainer.test(model=model, dataloaders=train_loader)
-    val_result = trainer.test(model=model, dataloaders=val_loader)
-    test_result = trainer.test(model=model, dataloaders=test_loader)
+    # train_result = trainer.test(model=model, dataloaders=train_loader)
+    # val_result = trainer.test(model=model, dataloaders=val_loader)
+    # test_result = trainer.test(model=model, dataloaders=test_loader)
 
-    print("Finished")
+    # print("Finished")
 
-    exit(0)
+    # exit(0)
     for dataset in [test, train, val]:
         print(len(dataset))
+        label_sum = 0
         for index in range(len(dataset)):
-            data = dataset.get(index)
-            print(data)
-            print(data.y)
-            data = dataset.get(len(dataset) - index - 1)
-            print(data)
-            print(data.y)
-            exit(0)
+            record = dataset.get(index)
+            prot = remove_arg_prefix("prot_", record)
+            drug = remove_arg_prefix("drug_", record)
+            pred = model.forward(prot, drug)
+            print("Prediction:", pred, "<> Label:", record["label"])
+        exit(0)
+    print("Finished")
 
 
 if __name__ == '__main__':

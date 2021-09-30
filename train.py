@@ -110,15 +110,15 @@ def train(**kwargs):
         else:
             print("Start testing")
 
-            train_result = trainer.test(model, train_dataloader)
-            val_result = trainer.test(model, val_dataloader)
+            # train_result = trainer.test(model, train_dataloader)
+            # val_result = trainer.test(model, val_dataloader)
             test_result = trainer.test(model, test_dataloader)
 
             print("Print results")
 
             # print(train_result)
             # print(val_result)
-            print(test_result)
+            print("\n".join(str(x["test_correct"]) for x in model.test_results))
 
             print("Finished")
 
@@ -143,7 +143,7 @@ def parse_args(predict=False):
     parser.add_argument("--checkpoint", type=str, required=True)
     parser.add_argument("--lectin")
     parser.add_argument("--glycan")
-    parser.add_argument("--prediction", action='store_true', default=False)
+    parser.add_argument("--predict", action='store_true', default=False)
 
     trainer = parser.add_argument_group("Trainer")
     model = parser.add_argument_group("Model")
