@@ -127,6 +127,10 @@ def parse_args(predict=False):
     parser.add_argument("--name", type=str, default=None, help="Subdirectory to store the graphs in")
     parser.add_argument("--debug", action='store_true', default=False, help="Flag to turn on the debug mode")
     parser.add_argument("--runs", type=int, default=1, help="Number of runs to perform to get more reliable results")
+    if predict:
+        parser.add_argument("-c", "--checkpoint", type=str, required=True)
+        parser.add_argument("-l", "--lectin")
+        parser.add_argument("-g", "--glycan")
 
     trainer = parser.add_argument_group("Trainer")
     model = parser.add_argument_group("Model")

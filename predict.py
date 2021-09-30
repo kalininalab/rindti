@@ -1,10 +1,9 @@
-import argparse
-
-from pytorch_lightning import seed_everything
+from pytorch_lightning import seed_everything, Trainer
+from torch_geometric.data import DataLoader
 
 from rindti.utils.data import Dataset
 from rindti.utils.transforms import GnomadTransformer, RandomTransformer
-from train import models
+from train import models, parse_args
 
 
 def predict(**kwargs):
@@ -24,7 +23,7 @@ def predict(**kwargs):
     val = Dataset(kwargs["data"], split="val", name=kwargs["name"])
     test = Dataset(kwargs["data"], split="test", name=kwargs["name"])
 
-    train_dataloader = DataLoader(train)
+    train_loader = DataLoader(train)
     val_loader = DataLoader(val)
     test_loader = DataLoader(test)
 
@@ -36,6 +35,8 @@ def predict(**kwargs):
     train_result = trainer.test(model=model, dataloaders=train_loader)
     val_result = trainer.test(model=model, dataloaders=val_loader)
     test_result = trainer.test(model=model, dataloaders=test_loader)
+
+    print("Finished")
 
     exit(0)
     for dataset in [test, train, val]:
@@ -51,17 +52,4 @@ def predict(**kwargs):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model", type=str, default="classification")
-    parser.add_argument("data", type=str)
-    parser.add_argument("-c", "--checkpoint", type=str, required=True)
-    parser.add_argument("-n", "--name", type=str, default=None, help="Subdirectory to store the graphs in")
-    parser.add_argument("-d", "--debug", action='store_true', default=False, help="Flag to turn on the debug mode")
-    parser.add_argument("-l", "--lectin")
-    parser.add_argument("-g", "--glycan")
-    parser.add_argument("-s", "--seed", type=int, default=42)
-    parser.add_argument("-t", "--transformer", type=str, default="none")
-    # parser = models[model_type].add_arguments(parser)
-    argvars = vars(parser.parse_args())
-
-    predict(**argvars)
+    predict(**parse_args(predict=True))
