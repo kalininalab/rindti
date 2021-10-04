@@ -43,23 +43,14 @@ def train(**kwargs):
     print("Train-Samples:", len(train))
     print("Validation Samples:", len(val))
     print("Test Samples:", len(test))
-    if kwargs["debug"]:
-        for i, batch in enumerate(train):
-            print(batch)
-            if i == 5:
-                exit(0)
 
     kwargs.update(train.config)
-    callbacks = [
-        ModelCheckpoint(monitor="val_loss", save_top_k=3, mode="min"),
-        EarlyStopping(monitor="val_loss", patience=kwargs["early_stop_patience"], mode="min"),
-    ]
-    
     dataloader_kwargs = {k: v for (k, v) in kwargs.items() if k in ["batch_size", "num_workers"]}
     dataloader_kwargs.update({"follow_batch": ["prot_x", "drug_x"]})
     
     sub_folder = os.path.join("tb_logs", kwargs["name"])
-    folder = os.path.join(sub_folder, kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0])
+    model_name = kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0]
+    folder = os.path.join(sub_folder, model_name)
     
     if not os.path.exists(sub_folder):
         os.mkdir(subfolder)
@@ -73,16 +64,18 @@ def train(**kwargs):
         next_version = str(int([d for d in os.listdir(folder) if "version" in d and os.path.isdir(os.path.join(folder, d))][-1].split("_")[1]) + 1)
 
     for seed in seeds:
+        callbacks = [
+            ModelCheckpoint(monitor="val_loss", save_top_k=3, mode="min"),
+            EarlyStopping(monitor="val_loss", patience=kwargs["early_stop_patience"], mode="min"),
+        ]
         if kwargs["runs"] == 1:
             logger = TensorBoardLogger(
-                save_dir=os.path.join("tb_logs", kwargs["name"]), default_hp_metric=False, 
-                name=kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0],
+                save_dir=os.path.join("tb_logs", kwargs["name"]), default_hp_metric=False, name=model_name,
             )
         else:
             logger = TensorBoardLogger(
-                save_dir=os.path.join("tb_logs", kwargs["name"], "version_" + next_version), 
-                name=kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0], 
-                version=seed, default_hp_metric=False,
+                save_dir=os.path.join("tb_logs", kwargs["name"], model_name), 
+                name="version_" + next_version, version=seed, default_hp_metric=False,
             )
         
         trainer = Trainer(
@@ -179,7 +172,7 @@ def parse_args(predict=False):
     parser.add_argument("--name", type=str, default=None, help="Subdirectory to store the graphs in")
     parser.add_argument("--debug", action='store_true', default=False, help="Flag to turn on the debug mode")
     parser.add_argument("--runs", type=int, default=1, help="Number of runs to perform to get more reliable results")
-    parser.add_argument("--checkpoint", type=str, required=True)
+    parser.add_argument("--checkpoint", type=str)
     parser.add_argument("--lectin")
     parser.add_argument("--glycan")
     parser.add_argument("--predict", action='store_true', default=False)
