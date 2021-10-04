@@ -111,7 +111,7 @@ class BaseModel(LightningModule):
             _auroc = torch.tensor(np.nan, device=self.device)
         _mc = matthews_corrcoef(output, labels.squeeze(1), num_classes=2)
         return {
-            # "pred": output.data,
+            "pred": output.data,
             "acc": acc,
             "auroc": _auroc,
             "matthews": _mc,
@@ -140,7 +140,8 @@ class BaseModel(LightningModule):
 
     def shared_epoch_end(self, outputs: dict, prefix: str, log_hparams=False):
         """Things that are the same foor train, test and val"""
-        entries = outputs[0].keys()
+        entries = list(outputs[0].keys())
+        entries.remove("pred")
         metrics = {}
         for i in entries:
             val = torch.stack([x[i] for x in outputs])

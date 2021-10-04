@@ -92,7 +92,16 @@ def train(**kwargs):
         train_dataloader = DataLoader(train, **dataloader_kwargs, shuffle=True)
         val_dataloader = DataLoader(val, **dataloader_kwargs, shuffle=False)
         test_dataloader = DataLoader(test, **dataloader_kwargs, shuffle=False)
-        checkpoint_dir = os.path.join("data", kwargs["data"].split("/")[-1].split(".")[0], "checkpoints")
+
+        base_dir = os.path.join("data", kwargs["data"].split("/")[-1].split(".")[0])
+        checkpoint_dir = os.path.join(base_dir, "checkpoints")
+        prediction_dir = os.path.join(base_dir, "predictions")
+        if not os.path.isdir(base_dir):
+            os.mkdir(base_dir)
+        if not os.path.isdir(checkpoint_dir):
+            os.mkdir(checkpoint_dir)
+        if not os.path.isdir(prediction_dir):
+            os.mkdir(prediction_dir)
 
         seed_everything(seed)
         model = models[kwargs["model"]](**kwargs)
@@ -119,23 +128,23 @@ def train(**kwargs):
 
             print("Print results")
             df = pd.DataFrame(index=list(drug_ids), columns=list(protein_ids))
-            for results, data in [train_result, val_result, test_results]:
+            for i, (results, data) in enumerate([train_result, val_result, test_results]):
                 # for results, data in [test_results]:
                 for result, graph in zip(results, data):
                     acc = result["acc"].item()
                     label = graph["label"].item()
-                    # print("Label:", result["pred"])
+                    print("Pred:", result["pred"], "\t| Label:", label, "\t| Acc:", acc)
                     prot_id = graph["prot_id"][0]
                     drug_id = graph["drug_id"][0]
                     if acc == 1 and label == 1:
-                        df.at[prot_id, drug_id] = 0
+                        df.at[drug_id, prot_id] = 0 + i * 10
                     if acc == 1 and label == 0:
-                        df.at[prot_id, drug_id] = 1
+                        df.at[drug_id, prot_id] = 1 + i * 10
                     if acc == 0 and label == 1:
-                        df.at[prot_id, drug_id] = 2
+                        df.at[drug_id, prot_id] = 2 + i * 10
                     if acc == 0 and label == 0:
-                        df.at[prot_id, drug_id] = 3
-            df.to_csv("./predictions.csv")
+                        df.at[drug_id, prot_id] = 3 + i * 10
+            df.to_csv(os.path.join(prediction_dir, "predictions.csv"))
 
             total = [0, 0, 0, 0, 0]
             proteins = {}
@@ -144,7 +153,7 @@ def train(**kwargs):
                 for _, pred in row.iteritems():
                     if pred != pred:
                         continue
-                    pred = int(pred)
+                    pred = int(pred) % 10
                     total[pred] += 1
                     total[-1] += 1
                     tmp[pred] += 1
