@@ -111,6 +111,7 @@ def train(**kwargs):
             trainer.test(model, test_dataloader)
             trainer.save_checkpoint(os.path.join(checkpoint_dir, kwargs["name"] + "_" + get_timestamp() + ".ckpt"))
         else:
+            model = models[kwargs["model"]].load_from_checkpoint(kwargs["checkpoint"])
             print("Start testing")
 
             protein_ids, drug_ids = set(), set()
