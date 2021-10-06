@@ -53,7 +53,7 @@ def train(**kwargs):
     folder = os.path.join(sub_folder, model_name)
     
     if not os.path.exists(sub_folder):
-        os.mkdir(subfolder)
+        os.mkdir(sub_folder)
 
     if not os.path.exists(folder):
         os.mkdir(folder)
@@ -68,15 +68,18 @@ def train(**kwargs):
             ModelCheckpoint(monitor="val_loss", save_top_k=3, mode="min"),
             EarlyStopping(monitor="val_loss", patience=kwargs["early_stop_patience"], mode="min"),
         ]
-        if kwargs["runs"] == 1:
-            logger = TensorBoardLogger(
-                save_dir=os.path.join("tb_logs", kwargs["name"]), default_hp_metric=False, name=model_name,
-            )
+        if kwargs["predict"]:
+            logger = None
         else:
-            logger = TensorBoardLogger(
-                save_dir=os.path.join("tb_logs", kwargs["name"], model_name), 
-                name="version_" + next_version, version=seed, default_hp_metric=False,
-            )
+            if kwargs["runs"] == 1:
+                logger = TensorBoardLogger(
+                    save_dir=os.path.join("tb_logs", kwargs["name"]), default_hp_metric=False, name=model_name,
+                )
+            else:
+                logger = TensorBoardLogger(
+                    save_dir=os.path.join("tb_logs", kwargs["name"], model_name),
+                    name="version_" + next_version, version=seed, default_hp_metric=False,
+                )
         
         trainer = Trainer(
             gpus=kwargs["gpus"],
@@ -104,13 +107,14 @@ def train(**kwargs):
             os.mkdir(prediction_dir)
 
         seed_everything(seed)
-        model = models[kwargs["model"]](**kwargs)
 
         if not kwargs["predict"]:
+            model = models[kwargs["model"]](**kwargs)
             trainer.fit(model, train_dataloader, val_dataloader)
             trainer.test(model, test_dataloader)
             trainer.save_checkpoint(os.path.join(checkpoint_dir, kwargs["name"] + "_" + get_timestamp() + ".ckpt"))
         else:
+            model = models[kwargs["model"]].load_from_checkpoint(kwargs["checkpoint"])
             print("Start testing")
 
             protein_ids, drug_ids = set(), set()
@@ -133,21 +137,19 @@ def train(**kwargs):
                 for result, graph in zip(results, data):
                     acc = result["acc"].item()
                     label = graph["label"].item()
-                    print("Pred:", result["pred"], "\t| Label:", label, "\t| Acc:", acc)
                     prot_id = graph["prot_id"][0]
                     drug_id = graph["drug_id"][0]
-                    if acc == 1 and label == 1:
+                    if acc == 1 and label == 1:  # TP
                         df.at[drug_id, prot_id] = 0 + i * 10
-                    if acc == 1 and label == 0:
+                    if acc == 1 and label == 0:  # TN
                         df.at[drug_id, prot_id] = 1 + i * 10
-                    if acc == 0 and label == 1:
+                    if acc == 0 and label == 1:  #
                         df.at[drug_id, prot_id] = 2 + i * 10
                     if acc == 0 and label == 0:
                         df.at[drug_id, prot_id] = 3 + i * 10
             df.to_csv(os.path.join(prediction_dir, "predictions.csv"))
 
             total = [0, 0, 0, 0, 0]
-            proteins = {}
             for index, (_, row) in enumerate(df.iterrows()):
                 tmp = [0, 0, 0, 0, 0]
                 for _, pred in row.iteritems():
