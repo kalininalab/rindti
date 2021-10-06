@@ -24,18 +24,31 @@ class ClassificationModel(BaseModel):
         drug_param = remove_arg_prefix("drug_", kwargs)
         prot_param = remove_arg_prefix("prot_", kwargs)
         mlp_param = remove_arg_prefix("mlp_", kwargs)
+
         if prot_param["pretrain"]:
             self.prot_feat_embed, self.prot_node_embed, self.prot_pool = self._load_pretrained(prot_param["pretrain"])
         else:
-            self.prot_feat_embed = self._get_feat_embed(prot_param)
+            if prot_param["feat_embed"] == "embed":
+                self.prot_feat_embed = self._get_feat_embed(prot_param)
+            elif prot_param["feat_embed"] == "mlp":
+                pass
+            else:
+                raise ValueError("Unknown protein embedding type!")
             self.prot_node_embed = self._get_node_embed(prot_param)
             self.prot_pool = self._get_pooler(prot_param)
+
         if drug_param["pretrain"]:
             self.drug_feat_embed, self.drug_node_embed, self.drug_pool = self._load_pretrained(drug_param["pretrain"])
         else:
-            self.drug_feat_embed = self._get_feat_embed(drug_param)
+            if drug_param["feat_embed"] == "embed":
+                self.drug_feat_embed = self._get_feat_embed(drug_param)
+            elif drug_param["feat_embed"] == "mlp":
+                pass
+            else:
+                raise ValueError("Unknown drug embedding type!")
             self.drug_node_embed = self._get_node_embed(drug_param)
             self.drug_pool = self._get_pooler(drug_param)
+
         self.mlp = self._get_mlp(mlp_param)
 
     def _load_pretrained(self, checkpoint_path: str) -> Iterable[BaseLayer]:
@@ -113,6 +126,8 @@ class ClassificationModel(BaseModel):
         drug = parser.add_argument_group("Drug", prefix="--drug_")
         prot.add_argument("feat_embed_dim", default=32, type=int)
         drug.add_argument("feat_embed_dim", default=32, type=int)
+        prot.add_argument("feat_embed", default="embed", type=str)
+        drug.add_argument("feat_embed", default="embed", type=str)
         prot.add_argument("pretrain", default=None, type=str)
         drug.add_argument("pretrain", default=None, type=str)
         ## Add module-specific embeddings
