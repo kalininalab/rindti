@@ -40,6 +40,11 @@ class BaseModel(LightningModule):
         super().__init__()
 
     def _get_feat_embed(self, params: dict) -> Embedding:
+        """
+        Embedding is simple mapping from number of inputs to number of vectors of a certain size.
+        So, it can be seen as a random mapping into a latent space without any learnability and context
+        Source: https://pytorch.org/docs/stable/generated/torch.nn.Embedding.html
+        """
         return Embedding(params["feat_dim"] + 1, params["feat_embed_dim"])
 
     def _get_node_embed(self, params: dict, out_dim=None) -> BaseLayer:
@@ -139,9 +144,8 @@ class BaseModel(LightningModule):
             self.logger.experiment.add_histogram(name, param, self.current_epoch)
 
     def shared_epoch_end(self, outputs: dict, prefix: str, log_hparams=False):
-        """Things that are the same foor train, test and val"""
-        entries = list(outputs[0].keys())
-        entries.remove("pred")
+        """Things that are the same for train, test and val"""
+        entries = [x for x in outputs[0].keys() if x != "pred"]
         metrics = {}
         for i in entries:
             val = torch.stack([x[i] for x in outputs])
