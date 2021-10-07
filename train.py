@@ -143,9 +143,9 @@ def train(**kwargs):
                         df.at[drug_id, prot_id] = 0 + i * 10
                     if acc == 1 and label == 0:  # TN
                         df.at[drug_id, prot_id] = 1 + i * 10
-                    if acc == 0 and label == 1:  #
+                    if acc == 0 and label == 1:  # FN
                         df.at[drug_id, prot_id] = 2 + i * 10
-                    if acc == 0 and label == 0:
+                    if acc == 0 and label == 0:  # FP
                         df.at[drug_id, prot_id] = 3 + i * 10
             df.to_csv(os.path.join(prediction_dir, "predictions.csv"))
 
