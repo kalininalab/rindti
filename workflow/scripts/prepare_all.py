@@ -45,14 +45,26 @@ def update_config(config: dict) -> dict:
     return config
 
 
+def identify_set(df, names, col):
+    return {(name, df[df[col] == name]["split"].data()[0]) for name in names}
+
+
 def negative_sampling(df: DataFrame, config: dict):
     proteins = list(df["Target_ID"].unique())
     drugs = list(df["Drug_ID"].unique())
     number = config["parse_dataset"]["augment"] * len(df)
 
+    if config["split"]["method"] not in ["random", "colddrug", "coldtarget"]:
+        raise ValueError("Split method unknown!")
+
     # assign splits aka "train", "test", "val"
-    splitting = lambda x: "train" if x < config["split"]["train"] else \
-        ("val" if x < config["split"]["train"] + config["split"]["val"] else "test")
+    if config["split"]["method"] == "colddrug":
+        splitting = dict([(name, df[df["Drug_ID"] == name]["split"].data()[0]) for name in drugs])
+    elif config["split"]["method"] == "coldtarget":
+        splitting = dict([(name, df[df["Target_ID"] == name]["split"].data()[0]) for name in proteins])
+    else:
+        splitting = lambda x: "train" if x < config["split"]["train"] else \
+            ("val" if x < config["split"]["train"] + config["split"]["val"] else "test")
     art = pd.DataFrame(columns=df.columns)
 
     for i in range(number):
@@ -63,7 +75,13 @@ def negative_sampling(df: DataFrame, config: dict):
             prot = proteins[np.random.randint(0, len(proteins))]
             drug = drugs[np.random.randint(0, len(drugs))]
 
-        art.loc[len(art)] = [len(df) + i, drug, prot, 0, splitting(np.random.random())]
+        if config["split"]["method"] == "colddrug":
+            split = splitting[drug]
+        elif config["split"]["method"] == "coldtarget":
+            split = splitting[prot]
+        else:
+            split = splitting(np.random.random())
+        art.loc[len(art)] = [len(df) + i, drug, prot, 0, split]
     return art
 
 
