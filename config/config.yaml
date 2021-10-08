@@ -1,9 +1,9 @@
 # the two root directories to take the data from and to store the data in
 source: datasets/resources/lectin
-target: datasets/results/lectin_one
+target: datasets/results/lectin_aug
 
 # mode when embedding the drugs have to be either >gpcr< or >lectin<
-mode: one
+mode: lectin
 
 bsite:
   # radius (in Angstroms) around ligands for which residues are considered to be part of the binding site
@@ -28,7 +28,7 @@ prepare_proteins:
 
 split:
   # available methods: random, coldtarget, colddrug
-  method: random
+  method: colddrug
   train: 0.7
   val: 0.2
   # test is created as a remainder of train and val

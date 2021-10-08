@@ -59,9 +59,10 @@ def negative_sampling(df: DataFrame, config: dict):
 
     # assign splits aka "train", "test", "val"
     if config["split"]["method"] == "colddrug":
-        splitting = dict([(name, df[df["Drug_ID"] == name]["split"].data()[0]) for name in drugs])
+        print(df[df["Drug_ID"] == drugs[0]]["split"].values[0])
+        splitting = dict([(name, df[df["Drug_ID"] == name]["split"].values[0]) for name in drugs])
     elif config["split"]["method"] == "coldtarget":
-        splitting = dict([(name, df[df["Target_ID"] == name]["split"].data()[0]) for name in proteins])
+        splitting = dict([(name, df[df["Target_ID"] == name]["split"].values[0]) for name in proteins])
     else:
         splitting = lambda x: "train" if x < config["split"]["train"] else \
             ("val" if x < config["split"]["train"] + config["split"]["val"] else "test")
