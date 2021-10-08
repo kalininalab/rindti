@@ -110,15 +110,19 @@ class BaseModel(LightningModule):
         """Calculate metrics common for classification - accuracy, auroc and Matthews coefficient
         Returns dict of all"""
         acc = accuracy(output, labels)
+        '''
         try:
             _auroc = auroc(output, labels, pos_label=1)
         except Exception:
             _auroc = torch.tensor(np.nan, device=self.device)
+        '''
         _mc = matthews_corrcoef(output, labels.squeeze(1), num_classes=2)
         return {
             "pred": output.data,
+            "output": output,
+            "labels": labels,
             "acc": acc,
-            "auroc": _auroc,
+            # "auroc": _auroc,
             "matthews": _mc,
         }
 
