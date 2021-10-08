@@ -44,6 +44,15 @@ def train(**kwargs):
     print("Validation Samples:", len(val))
     print("Test Samples:", len(test))
 
+    if kwargs["debug"]:
+        print("train")
+        print([x["label"].item() for x in train])
+        print("val")
+        print([x["label"].item() for x in val])
+        print("test")
+        print([x["label"].item() for x in test])
+        # exit(0)
+
     kwargs.update(train.config)
     dataloader_kwargs = {k: v for (k, v) in kwargs.items() if k in ["batch_size", "num_workers"]}
     dataloader_kwargs.update({"follow_batch": ["prot_x", "drug_x"]})
@@ -93,8 +102,8 @@ def train(**kwargs):
         )
 
         train_dataloader = DataLoader(train, **dataloader_kwargs, shuffle=True)
-        val_dataloader = DataLoader(val, **dataloader_kwargs, shuffle=False)
-        test_dataloader = DataLoader(test, **dataloader_kwargs, shuffle=False)
+        val_dataloader = DataLoader(val, **dataloader_kwargs, shuffle=True)
+        test_dataloader = DataLoader(test, **dataloader_kwargs, shuffle=True)
 
         base_dir = os.path.join("data", kwargs["data"].split("/")[-1].split(".")[0])
         checkpoint_dir = os.path.join(base_dir, "checkpoints")
