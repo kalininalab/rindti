@@ -149,9 +149,10 @@ class BaseModel(LightningModule):
 
     def shared_epoch_end(self, outputs: dict, prefix: str, log_hparams=False):
         """Things that are the same for train, test and val"""
-        entries = [x for x in outputs[0].keys() if x != "pred"]
-        metrics = {}
-        for i in entries:
+        metrics = {
+            "auroc": auroc(torch.stack([x["output"] for x in outputs]), torch.stack([x["labels"] for x in outputs]))
+        }
+        for i in ["acc", "matthews"]:
             val = torch.stack([x[i] for x in outputs])
             val = val[~val.isnan()].mean()
             self.logger.experiment.add_scalar(prefix + i, val, self.current_epoch)
