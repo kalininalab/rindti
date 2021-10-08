@@ -90,7 +90,6 @@ def negative_sampling(df: DataFrame, config: dict):
             split = splitting[prot]
         else:
             split = splitting(np.random.random())
-        print("D:", drug, "| P:", prot, "| S:", split)
         art.loc[len(art)] = [len(df) + i, drug, prot, 0, split]
     return art
 
