@@ -45,13 +45,7 @@ def train(**kwargs):
     print("Test Samples:", len(test))
 
     if kwargs["debug"]:
-        print("train")
-        print([x["label"].item() for x in train])
-        print("val")
-        print([x["label"].item() for x in val])
-        print("test")
-        print([x["label"].item() for x in test])
-        # exit(0)
+        exit(0)
 
     kwargs.update(train.config)
     dataloader_kwargs = {k: v for (k, v) in kwargs.items() if k in ["batch_size", "num_workers"]}
