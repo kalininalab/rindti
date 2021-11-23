@@ -5,16 +5,16 @@ from torch import LongTensor, Tensor
 from torch_geometric.nn import GraphMultisetTransformer
 from torch_geometric.typing import Adj
 
-from ..base_layer import BaseLayer
+from .base_pool import BasePool
 
 
-class GMTNet(BaseLayer):
+class GMTNet(BasePool):
     """https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.glob.GraphMultisetTransformer"""
 
     def __init__(
         self,
-        input_dim: int,
-        output_dim: int,
+        input_dim: int = None,
+        output_dim: int = None,
         hidden_dim: int = 128,
         ratio: float = 0.25,
         max_nodes: int = 600,

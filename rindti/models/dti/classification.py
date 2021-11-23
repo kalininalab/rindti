@@ -3,7 +3,11 @@ from typing import Iterable
 
 import torch
 import torch.nn.functional as F
+from jsonargparse.typing import final
+from matplotlib.pyplot import get
 from torch.functional import Tensor
+
+from rindti.utils.cli import get_module
 
 from ...data import TwoGraphData
 from ...layers.base_layer import BaseLayer
@@ -14,28 +18,29 @@ from ..encoder import Encoder
 from ..pretrain import BGRLModel, GraphLogModel, InfoGraphModel, PfamModel
 
 
+@final
 class ClassificationModel(BaseModel):
     """Model for DTI prediction as a class problem"""
 
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        prot_encoder: Encoder = None,
+        drug_encoder: Encoder = None,
+        snnl: SoftNearestNeighborLoss = None,
+        optimiser: str = "adam",
+        lr: float = 0.001,
+        reduce_lr_factor: float = 0.5,
+        reduce_lr_patience: int = 20,
+        monitor: str = "val_loss",
+        feat_method: str = "concat",
+        **kwargs,
+    ):
         super().__init__()
         self.save_hyperparameters()
-        self._determine_feat_method(**kwargs)
-        drug_param = remove_arg_prefix("drug_", kwargs)
-        prot_param = remove_arg_prefix("prot_", kwargs)
-        mlp_param = remove_arg_prefix("mlp_", kwargs)
-        if prot_param["pretrain"]:
-            self.prot_encoder = self._load_pretrained(prot_param["pretrain"])
-            self.hparams.prot_lr *= 0.001
-        else:
-            self.prot_encoder = Encoder(**prot_param)
-        if drug_param["pretrain"]:
-            self.drug_encoder = self._load_pretrained(drug_param["pretrain"])
-            self.hparams.drug_lr *= 0.001
-        else:
-            self.drug_encoder = Encoder(**drug_param)
-        self.mlp = self._get_mlp(mlp_param)
-        self.snnl = SoftNearestNeighborLoss(kwargs["temperature"])
+        self.prot_encoder = Encoder(**prot_encoder)
+        self.drug_encoder = Encoder(**drug_encoder)
+        self.snnl = get_module(snnl)
+        self._determine_feat_method(feat_method, prot_encoder["hidden_dim"], drug_encoder["hidden_dim"])
 
     def _load_pretrained(self, checkpoint_path: str) -> Iterable[BaseLayer]:
         """Load pretrained model

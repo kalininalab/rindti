@@ -5,10 +5,10 @@ from torch.nn import Embedding
 from torch_geometric.nn import PNAConv
 from torch_geometric.typing import Adj
 
-from ..base_layer import BaseLayer
+from .base_conv import BaseConv
 
 
-class PNAConvNet(BaseLayer):
+class PNAConvNet(BaseConv):
     """Principal Neighbourhood Aggregation
     https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.PNAConv
     """

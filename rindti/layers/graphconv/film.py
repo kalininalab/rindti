@@ -5,10 +5,10 @@ from torch.nn import ModuleList
 from torch_geometric.nn import FiLMConv
 from torch_geometric.typing import Adj
 
-from ..base_layer import BaseLayer
+from .base_conv import BaseConv
 
 
-class FilmConvNet(BaseLayer):
+class FilmConvNet(BaseConv):
     """FiLMConv
     https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.FiLMConv
     """

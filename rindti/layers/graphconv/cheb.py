@@ -5,10 +5,10 @@ from torch.nn import ModuleList
 from torch_geometric.nn import ChebConv
 from torch_geometric.typing import Adj
 
-from ..base_layer import BaseLayer
+from .base_conv import BaseConv
 
 
-class ChebConvNet(BaseLayer):
+class ChebConvNet(BaseConv):
     """Chebyshev Convolution
 
     Args:

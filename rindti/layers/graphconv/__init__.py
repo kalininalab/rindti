@@ -1,3 +1,4 @@
+from .base_conv import BaseConv
 from .cheb import ChebConvNet
 from .film import FilmConvNet
 from .gat import GatConvNet

@@ -5,10 +5,10 @@ from torch.functional import Tensor
 from torch_geometric.nn import GINConv
 from torch_geometric.typing import Adj
 
-from ..base_layer import BaseLayer
+from .base_conv import BaseConv
 
 
-class GINConvNet(BaseLayer):
+class GINConvNet(BaseConv):
     """Graph Isomorphism Network
 
     Args:
@@ -18,7 +18,14 @@ class GINConvNet(BaseLayer):
         num_layers (int, optional): Total number of layers. Defaults to 3.
     """
 
-    def __init__(self, input_dim: int, output_dim: int, hidden_dim: int = 64, num_layers: int = 3, **kwargs):
+    def __init__(
+        self,
+        input_dim: int = None,
+        output_dim: int = None,
+        hidden_dim: int = 64,
+        num_layers: int = 3,
+        **kwargs,
+    ):
         super().__init__()
         self.inp = GINConv(
             nn.Sequential(

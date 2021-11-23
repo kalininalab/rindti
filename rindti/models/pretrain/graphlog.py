@@ -1,5 +1,4 @@
 import random
-from argparse import ArgumentParser
 from copy import deepcopy
 from math import ceil
 from typing import Tuple
@@ -7,8 +6,7 @@ from typing import Tuple
 import torch
 from torch_geometric.data import Data
 
-from ...utils import MyArgParser
-from ..base_model import BaseModel, node_embedders, poolers
+from ..base_model import BaseModel
 from ..encoder import Encoder
 
 # NCE loss between graphs and prototypes

@@ -1,7 +1,5 @@
-from argparse import ArgumentParser
 from typing import Tuple, Union
 
-import numpy as np
 import torch
 from pytorch_lightning import LightningModule
 from torch import LongTensor, Tensor, nn
@@ -28,6 +26,7 @@ from ..layers import (
     MeanPool,
     TransformerNet,
 )
+from ..utils import get_module
 
 node_embedders = {
     "ginconv": GINConvNet,
@@ -48,17 +47,17 @@ class BaseModel(LightningModule):
     def __init__(self):
         super().__init__()
 
-    def _get_label_embed(self, params: dict) -> nn.Embedding:
-        return nn.Embedding(params["feat_dim"] + 1, params["hidden_dim"])
+    def _get_label_embed(self) -> nn.Embedding:
+        return nn.Embedding(self.feat_dim + 1, self.hidden_dim)
 
-    def _get_onehot_embed(self, params: dict) -> nn.LazyLinear:
-        return nn.Linear(params["feat_dim"], params["hidden_dim"], bias=False)
+    def _get_onehot_embed(self) -> nn.Linear:
+        return nn.Linear(self.__slots__feat_dim, self.hidden_dim, bias=False)
 
-    def _get_feat_embed(self, params: dict) -> Union[nn.Embedding, nn.LazyLinear]:
-        if params["feat_type"] == "onehot":
-            return self._get_onehot_embed(params)
-        elif params["feat_type"] == "label":
-            return self._get_label_embed(params)
+    def _get_feat_embed(self) -> Union[nn.Embedding, nn.Linear]:
+        if self.feat_type == "onehot":
+            return self._get_onehot_embed()
+        elif self.feat_type == "label":
+            return self._get_label_embed()
         else:
             raise ValueError("Unknown feature type!")
 
@@ -186,11 +185,6 @@ class BaseModel(LightningModule):
     def configure_optimizers(self) -> Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler._LRScheduler]:
         """Configure the optimiser and/or lr schedulers"""
         optimiser = {"adamw": AdamW, "adam": Adam, "sgd": SGD, "rmsprop": RMSprop}[self.hparams.optimiser]
-        params = [{"params": self.parameters()}]
-        if hasattr(self, "prot_encoder"):
-            params.append({"params": self.prot_encoder.parameters(), "lr": self.hparams.prot_lr})
-        if hasattr(self, "drug_encoder"):
-            {"params": self.drug_encoder.parameters(), "lr": self.hparams.drug_lr}
         optimiser = optimiser(params=self.parameters(), lr=self.hparams.lr)
         lr_scheduler = {
             "scheduler": ReduceLROnPlateau(

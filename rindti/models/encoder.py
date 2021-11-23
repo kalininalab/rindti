@@ -1,26 +1,48 @@
 from argparse import ArgumentParser
+from pprint import pprint
 from typing import Tuple, Union
 
+from jsonargparse.typing import final
 from torch import nn
 from torch.functional import Tensor
 from torch_geometric.data import Data
 
+from ..layers import BaseConv, BasePool
+from ..utils import get_module
 from .base_model import BaseModel
 
 
+@final
 class Encoder(BaseModel):
     """Encoder for graphs"""
 
-    def __init__(self, return_nodes: bool = False, **kwargs):
+    def __init__(
+        self,
+        feat_type: str = None,
+        edge_type: str = None,
+        feat_dim: int = None,
+        edge_dim: int = None,
+        max_nodes: int = None,
+        node_embed: BaseConv = None,
+        pool: BasePool = None,
+        hidden_dim: int = 64,
+        **kwargs,
+    ):
         super().__init__()
-        self.feat_embed = self._get_feat_embed(kwargs)
-        self.node_embed = self._get_node_embed(kwargs)
-        self.pool = self._get_pooler(kwargs)
-        self.return_nodes = return_nodes
+        self.feat_type = feat_type
+        self.edge_type = edge_type
+        self.feat_dim = feat_dim
+        self.edge_dim = edge_dim
+        self.max_nodes = max_nodes
+        self.hidden_dim = hidden_dim
+        self.feat_embed = self._get_feat_embed()
+        self.node_embed = get_module(node_embed, input_dim=hidden_dim, output_dim=hidden_dim)
+        self.node_embed = get_module(pool, input_dim=hidden_dim, output_dim=hidden_dim)
 
     def forward(
         self,
         data: dict,
+        return_nodes: bool = False,
         **kwargs,
     ) -> Union[Tensor, Tuple[Tensor, Tensor]]:
         """Encode a graph
@@ -47,7 +69,7 @@ class Encoder(BaseModel):
             batch=batch,
         )
         embed = self.pool(x=node_embed, edge_index=edge_index, batch=batch)
-        if self.return_nodes:
+        if return_nodes:
             return embed, node_embed
         return embed
 

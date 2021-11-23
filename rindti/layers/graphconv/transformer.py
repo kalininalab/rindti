@@ -4,10 +4,10 @@ from torch import Tensor, nn
 from torch_geometric.nn import TransformerConv
 from torch_geometric.typing import Adj
 
-from ..base_layer import BaseLayer
+from .base_conv import BaseConv
 
 
-class TransformerNet(BaseLayer):
+class TransformerNet(BaseConv):
     """https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.TransformerConv"""
 
     def __init__(

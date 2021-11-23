@@ -5,10 +5,10 @@ from torch.functional import Tensor
 from torch_geometric.nn import global_mean_pool
 from torch_geometric.typing import Adj
 
-from ..base_layer import BaseLayer
+from .base_pool import BasePool
 
 
-class MeanPool(BaseLayer):
+class MeanPool(BasePool):
     """Mean Pooling module"""
 
     def __init__(self, *args, **kwargs):

@@ -8,10 +8,10 @@ from torch.functional import Tensor
 from torch_geometric.nn import DenseSAGEConv, dense_diff_pool, dense_mincut_pool
 from torch_geometric.typing import Adj
 
-from ..base_layer import BaseLayer
+from .base_pool import BasePool
 
 
-class DiffPoolNet(BaseLayer):
+class DiffPoolNet(BasePool):
     """Differential Pooling module
 
     Args:
