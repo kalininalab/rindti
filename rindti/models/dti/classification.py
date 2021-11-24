@@ -33,7 +33,6 @@ class ClassificationModel(BaseModel):
         reduce_lr_patience: int = 20,
         monitor: str = "val_loss",
         feat_method: str = "concat",
-        alpha: float = 0.01,
         **kwargs,
     ):
         super().__init__()
