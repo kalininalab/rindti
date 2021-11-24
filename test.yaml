@@ -11,8 +11,6 @@ model:
         class_path: rindti.layers.GINConvNet
       pool:
         class_path: rindti.layers.GMTNet
-    snnl:
-      class_path: rindti.losses.SoftNearestNeighborLoss
     mlp:
       class_path: rindti.layers.MLP
 data_module:

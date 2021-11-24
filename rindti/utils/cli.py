@@ -6,22 +6,22 @@ from torch import FloatTensor, LongTensor
 from ..layers.base_layer import BaseLayer
 
 
-def get_module(args: dict, **kwargs) -> BaseLayer:
-    """Return a module from args path, instantied with init_args.
+def get_module(init_args: dict, *args, **kwargs) -> BaseLayer:
+    """Return a module from init_args path, instantied with init_args.
 
     Args:
-        args (dict): A dictionary containing the path to the module and the init_args
+        init_args (dict): A dictionary containing the path to the module and the init_args
         input_dim (int): The input dimension of the module
         output_dim (int): The output dimension of the module
 
     Returns:
         [BaseLayer]: The module instantiated with init_args
     """
-    split_path = args.get("class_path", "").split(".")
+    split_path = init_args.get("class_path", "").split(".")
     module = import_module(".".join(split_path[:-1]))
-    mod_args = args.get("init_args", {})
+    mod_args = init_args.get("init_args", {})
     mod_args.update(kwargs)
-    return getattr(module, split_path[-1])(**mod_args)
+    return getattr(module, split_path[-1])(*args, **mod_args)
 
 
 def get_type(data: dict, key: str) -> str:
@@ -55,7 +55,7 @@ def read_config(filename: str) -> dict:
 
 
 def remove_arg_prefix(prefix: str, kwargs: dict) -> dict:
-    """Removes the prefix from all the args
+    """Removes the prefix from all the init_args
     Args:
         prefix (str): prefix to remove (`drug_`, `prot_` or `mlp_` usually)
         kwargs (dict): dict of arguments
@@ -74,7 +74,7 @@ def remove_arg_prefix(prefix: str, kwargs: dict) -> dict:
 
 
 def add_arg_prefix(prefix: str, kwargs: dict) -> dict:
-    """Adds the prefix to all the args. Removes None values and "index_mapping"
+    """Adds the prefix to all the init_args. Removes None values and "index_mapping"
     Args:
         prefix (str): prefix to add (`drug_`, `prot_` or `mlp_` usually)
         kwargs (dict): dict of arguments
