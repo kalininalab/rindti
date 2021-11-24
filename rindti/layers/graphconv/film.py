@@ -17,7 +17,7 @@ class FilmConvNet(BaseConv):
         self,
         input_dim: int,
         output_dim: int,
-        hidden_dim: int = 32,
+        hidden_dim: int = 64,
         edge_dim: int = None,
         num_layers: int = 10,
         **kwargs,

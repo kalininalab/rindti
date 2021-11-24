@@ -13,7 +13,7 @@ class PNAConvNet(BaseConv):
     https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.PNAConv
     """
 
-    def __init__(self, input_dim: int, output_dim: int, hidden_dim: int = 32, edge_dim=None, deg=None, **kwargs):
+    def __init__(self, input_dim: int, output_dim: int, hidden_dim: int = 64, edge_dim=None, deg=None, **kwargs):
         super().__init__()
         self.edge_embedding = Embedding(edge_dim, edge_dim)
         self.conv1 = PNAConv(

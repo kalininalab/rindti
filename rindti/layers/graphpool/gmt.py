@@ -15,12 +15,16 @@ class GMTNet(BasePool):
         self,
         input_dim: int = None,
         output_dim: int = None,
-        hidden_dim: int = 128,
+        hidden_dim: int = 64,
         ratio: float = 0.25,
         max_nodes: int = 600,
         num_heads: int = 4,
         **kwargs,
     ):
+        if input_dim is None:
+            input_dim = hidden_dim
+        if output_dim is None:
+            output_dim = hidden_dim
         super().__init__()
         self.pool = GraphMultisetTransformer(
             input_dim,

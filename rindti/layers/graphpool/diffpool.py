@@ -28,7 +28,7 @@ class DiffPoolNet(BasePool):
         self,
         input_dim: int,
         output_dim: int,
-        hidden_dim: int = 128,
+        hidden_dim: int = 64,
         max_nodes: int = 600,
         dropout: float = 0.2,
         ratio: float = 0.25,

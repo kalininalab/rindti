@@ -7,6 +7,7 @@ from jsonargparse.typing import final
 from matplotlib.pyplot import get
 from torch.functional import Tensor
 
+from rindti.data.datamodules import DTIDataModule
 from rindti.utils.cli import get_module
 
 from ...data import TwoGraphData
@@ -24,23 +25,17 @@ class ClassificationModel(BaseModel):
 
     def __init__(
         self,
-        prot_encoder: Encoder = None,
-        drug_encoder: Encoder = None,
-        mlp: MLP = None,
-        optimiser: str = "adam",
-        lr: float = 0.001,
-        reduce_lr_factor: float = 0.5,
-        reduce_lr_patience: int = 20,
-        monitor: str = "val_loss",
-        feat_method: str = "concat",
+        prot_encoder: Encoder,
+        drug_encoder: Encoder,
+        mlp: MLP,
+        feat_method: str = "element_l1",
         **kwargs,
     ):
         super().__init__()
-        self.save_hyperparameters()
-        self._determine_feat_method(feat_method, prot_encoder["hidden_dim"], drug_encoder["hidden_dim"])
-        self.prot_encoder = Encoder(**prot_encoder)
-        self.drug_encoder = Encoder(**drug_encoder)
-        self.mlp = get_module(mlp, input_dim=self.embed_dim, output_dim=1)
+        self.prot_encoder = prot_encoder
+        self.drug_encoder = drug_encoder
+        self.mlp = mlp
+        self._determine_feat_method(feat_method)
 
     def _load_pretrained(self, checkpoint_path: str) -> Iterable[BaseLayer]:
         """Load pretrained model

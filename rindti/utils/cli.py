@@ -1,6 +1,7 @@
 from importlib import import_module
 
 import yaml
+from pytorch_lightning.utilities.cli import LightningCLI
 from torch import FloatTensor, LongTensor
 
 from ..layers.base_layer import BaseLayer
@@ -82,3 +83,22 @@ def add_arg_prefix(prefix: str, kwargs: dict) -> dict:
         dict: Sub-dict of arguments
     """
     return {prefix + k: v for (k, v) in kwargs.items() if k != "index_mapping" and v is not None}
+
+
+class TrainCLI(LightningCLI):
+    pass
+
+    def add_arguments_to_parser(self, parser):
+        for p in ["prot", "drug"]:
+            parser.link_arguments(
+                f"data.{p}_feat_dim", f"model.{p}_encoder.init_args.feat_dim", apply_on="instantiate"
+            )
+            parser.link_arguments(
+                f"data.{p}_feat_type", f"model.{p}_encoder.init_args.feat_type", apply_on="instantiate"
+            )
+            parser.link_arguments(
+                f"data.{p}_edge_dim", f"model.{p}_encoder.init_args.edge_dim", apply_on="instantiate"
+            )
+            parser.link_arguments(
+                f"data.{p}_edge_type", f"model.{p}_encoder.init_args.edge_type", apply_on="instantiate"
+            )

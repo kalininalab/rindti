@@ -22,7 +22,7 @@ class ChebConvNet(BaseConv):
         self,
         input_dim: int,
         output_dim: int,
-        hidden_dim: int = 32,
+        hidden_dim: int = 64,
         K: int = 1,
         num_layers: int = 4,
         **kwargs,

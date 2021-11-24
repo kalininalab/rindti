@@ -23,6 +23,7 @@ class BaseDataModule(LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.shuffle = shuffle
+        self.setup()
 
     def get_config(self, prefix: str = "") -> dict:
         """Get the config for a single prefix"""
@@ -52,6 +53,14 @@ class DTIDataModule(BaseDataModule):
         if stage == "test" or stage is None:
             self.test = DTIDataset(self.filename, split="test").shuffle()
         self.config = self.train.config
+        self.prot_feat_dim = self.config["prot_feat_dim"]
+        self.drug_feat_dim = self.config["drug_feat_dim"]
+        self.prot_feat_type = self.config["prot_feat_type"]
+        self.drug_feat_type = self.config["drug_feat_type"]
+        self.prot_edge_dim = self.config["prot_edge_dim"]
+        self.drug_edge_dim = self.config["drug_edge_dim"]
+        self.prot_edge_type = self.config["prot_edge_type"]
+        self.drug_edge_type = self.config["drug_edge_type"]
 
     def _dl_kwargs(self, shuffle: bool = False):
         return dict(

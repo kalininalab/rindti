@@ -74,23 +74,23 @@ class BaseModel(LightningModule):
     def _get_mlp(self, params: dict) -> MLP:
         return MLP(**params, input_dim=self.embed_dim, out_dim=1)
 
-    def _determine_feat_method(self, feat_method: str, drug_hidden_dim: int, prot_hidden_dim: int, **kwargs):
+    def _determine_feat_method(self, feat_method: str):
         """Which method to use for concatenating drug and protein representations"""
         if feat_method == "concat":
             self.merge_features = self._concat
-            self.embed_dim = drug_hidden_dim + prot_hidden_dim
+            self.embed_dim = self.prot_encoder.hidden_dim + self.prot_encoder.hidden_dim
         elif feat_method == "element_l2":
-            assert drug_hidden_dim == prot_hidden_dim
+            assert self.prot_encoder.hidden_dim == self.prot_encoder.hidden_dim
             self.merge_features = self._element_l2
-            self.embed_dim = drug_hidden_dim
+            self.embed_dim = self.prot_encoder.hidden_dim
         elif feat_method == "element_l1":
-            assert drug_hidden_dim == prot_hidden_dim
+            assert self.prot_encoder.hidden_dim == self.prot_encoder.hidden_dim
             self.merge_features = self._element_l1
-            self.embed_dim = drug_hidden_dim
+            self.embed_dim = self.prot_encoder.hidden_dim
         elif feat_method == "mult":
-            assert drug_hidden_dim == prot_hidden_dim
+            assert self.prot_encoder.hidden_dim == self.prot_encoder.hidden_dim
             self.merge_features = self._mult
-            self.embed_dim = drug_hidden_dim
+            self.embed_dim = self.prot_encoder.hidden_dim
         else:
             raise ValueError("unsupported feature method")
 
@@ -182,17 +182,17 @@ class BaseModel(LightningModule):
         """What to do at the end of a test epoch. Logs everything, saves hyperparameters"""
         self.shared_epoch_end(outputs, "test_epoch_", log_hparams=True)
 
-    def configure_optimizers(self) -> Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler._LRScheduler]:
-        """Configure the optimiser and/or lr schedulers"""
-        optimiser = {"adamw": AdamW, "adam": Adam, "sgd": SGD, "rmsprop": RMSprop}[self.hparams.optimiser]
-        optimiser = optimiser(params=self.parameters(), lr=self.hparams.lr)
-        lr_scheduler = {
-            "scheduler": ReduceLROnPlateau(
-                optimiser,
-                factor=self.hparams.reduce_lr_factor,
-                patience=self.hparams.reduce_lr_patience,
-                verbose=True,
-            ),
-            "monitor": self.hparams.monitor,
-        }
-        return [optimiser], [lr_scheduler]
+    # def configure_optimizers(self) -> Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler._LRScheduler]:
+    #     """Configure the optimiser and/or lr schedulers"""
+    #     optimiser = {"adamw": AdamW, "adam": Adam, "sgd": SGD, "rmsprop": RMSprop}[self.hparams.optimiser]
+    #     optimiser = optimiser(params=self.parameters(), lr=self.hparams.lr)
+    #     lr_scheduler = {
+    #         "scheduler": ReduceLROnPlateau(
+    #             optimiser,
+    #             factor=self.hparams.reduce_lr_factor,
+    #             patience=self.hparams.reduce_lr_patience,
+    #             verbose=True,
+    #         ),
+    #         "monitor": self.hparams.monitor,
+    #     }
+    #     return [optimiser], [lr_scheduler]

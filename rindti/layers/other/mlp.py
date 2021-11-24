@@ -19,12 +19,14 @@ class MLP(BaseLayer):
     def __init__(
         self,
         input_dim: int = None,
-        output_dim: int = None,
+        output_dim: int = 1,
         hidden_dim: int = 64,
         num_layers: int = 2,
         dropout: float = 0.2,
         **kwargs,
     ):
+        if input_dim is None:
+            input_dim = hidden_dim
         super().__init__()
 
         self.mlp = nn.Sequential(nn.Linear(input_dim, hidden_dim), nn.ReLU(), nn.Dropout(dropout))

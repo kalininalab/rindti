@@ -14,7 +14,7 @@ class TransformerNet(BaseConv):
         self,
         input_dim,
         output_dim: int,
-        hidden_dim: int = 32,
+        hidden_dim: int = 64,
         dropout: float = 0.1,
         edge_dim: int = None,
         edge_type: str = "none",

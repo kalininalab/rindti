@@ -21,7 +21,7 @@ class GatConvNet(BaseConv):
         self,
         input_dim,
         output_dim: int,
-        hidden_dim: int = 32,
+        hidden_dim: int = 64,
         heads: int = 4,
         num_layers: int = 4,
         **kwargs,

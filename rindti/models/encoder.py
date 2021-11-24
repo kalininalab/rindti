@@ -7,24 +7,26 @@ from torch import nn
 from torch.functional import Tensor
 from torch_geometric.data import Data
 
+from rindti.layers.graphconv.ginconv import GINConvNet
+
 from ..layers import BaseConv, BasePool
 from ..utils import get_module
 from .base_model import BaseModel
 
 
-@final
+# @final
 class Encoder(BaseModel):
     """Encoder for graphs"""
 
     def __init__(
         self,
+        node_embed: BaseConv,
+        pool: BasePool,
         feat_type: str = None,
         edge_type: str = None,
         feat_dim: int = None,
         edge_dim: int = None,
         max_nodes: int = None,
-        node_embed: BaseConv = None,
-        pool: BasePool = None,
         hidden_dim: int = 64,
         **kwargs,
     ):
@@ -35,9 +37,9 @@ class Encoder(BaseModel):
         self.edge_dim = edge_dim
         self.max_nodes = max_nodes
         self.hidden_dim = hidden_dim
+        self.node_embed = node_embed
+        self.pool = pool
         self.feat_embed = self._get_feat_embed()
-        self.node_embed = get_module(node_embed, input_dim=hidden_dim, output_dim=hidden_dim)
-        self.pool = get_module(pool, input_dim=hidden_dim, output_dim=hidden_dim)
 
     def forward(
         self,

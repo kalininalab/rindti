@@ -26,6 +26,10 @@ class GINConvNet(BaseConv):
         num_layers: int = 3,
         **kwargs,
     ):
+        if input_dim is None:
+            input_dim = hidden_dim
+        if output_dim is None:
+            output_dim = hidden_dim
         super().__init__()
         self.inp = GINConv(
             nn.Sequential(
