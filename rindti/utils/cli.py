@@ -19,7 +19,7 @@ def get_module(args: dict, **kwargs) -> BaseLayer:
     """
     split_path = args.get("class_path", "").split(".")
     module = import_module(".".join(split_path[:-1]))
-    mod_args = args.get("ini_args", {})
+    mod_args = args.get("init_args", {})
     mod_args.update(kwargs)
     return getattr(module, split_path[-1])(**mod_args)
 

@@ -37,7 +37,7 @@ class Encoder(BaseModel):
         self.hidden_dim = hidden_dim
         self.feat_embed = self._get_feat_embed()
         self.node_embed = get_module(node_embed, input_dim=hidden_dim, output_dim=hidden_dim)
-        self.node_embed = get_module(pool, input_dim=hidden_dim, output_dim=hidden_dim)
+        self.pool = get_module(pool, input_dim=hidden_dim, output_dim=hidden_dim)
 
     def forward(
         self,
@@ -74,6 +74,7 @@ class Encoder(BaseModel):
         return embed
 
     def embed(self, data: Data, **kwargs):
+        """Just encode and detach"""
         self.return_nodes = False
         embed = self.forward(data)
         return embed.detach()

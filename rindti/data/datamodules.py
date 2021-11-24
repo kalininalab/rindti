@@ -5,7 +5,9 @@ from .datasets import DTIDataset
 
 
 class DTIDataModule(LightningDataModule):
-    def __init__(self, filename: str, batch_size: int = 64, num_workers: int = 0, shuffle: bool = True, **kwargs):
+    """LightningDataModule for DTI, contains all the datasets for train, val and test"""
+
+    def __init__(self, filename: str, batch_size: int = 128, num_workers: int = 16, shuffle: bool = True, **kwargs):
         super().__init__()
         self.filename = filename
         self.batch_size = batch_size
@@ -21,15 +23,22 @@ class DTIDataModule(LightningDataModule):
         )
 
     def setup(self, stage: str = None):
+        """Load the individual datasets"""
         if stage == "fit" or stage is None:
-            self.train = DTIDataset(self.filename, split="train")
-            self.val = DTIDataset(self.filename, split="val")
+            self.train = DTIDataset(self.filename, split="train").shuffle()
+            self.val = DTIDataset(self.filename, split="val").shuffle()
         if stage == "test" or stage is None:
-            self.test = DTIDataset(self.filename, split="test")
+            self.test = DTIDataset(self.filename, split="test").shuffle()
         self.config = self.train.config
 
     def get_config(self, prefix: str) -> dict:
+        """Get the config for a single prefix"""
         return {k.strip(prefix): v for k, v in self.config.items() if k.startswith(prefix)}
+
+    def update_model_args(self, model_init_args: dict):
+        """Update the model arguments with the config"""
+        for pref in ["prot_", "drug_"]:
+            model_init_args[f"{pref}encoder"].update(self.get_config(pref))
 
     def train_dataloader(self):
         return DataLoader(self.train, **self._dl_kwargs(True))
@@ -39,3 +48,8 @@ class DTIDataModule(LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(self.test, **self._dl_kwargs(False))
+
+    def __repr__(self):
+        return "DTI DataModule\n" + "\n".join(
+            [repr(getattr(self, x)) for x in ["train", "val", "test"] if hasattr(self, x)]
+        )

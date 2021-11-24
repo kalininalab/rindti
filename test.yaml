@@ -1,16 +1,25 @@
 model:
-  prot_encoder:
-    node_embed:
-      class_path: rindti.layers.GINConvNet
-    pool:
-      class_path: rindti.layers.GMTNet
-  drug_encoder:
-    node_embed:
-      class_path: rindti.layers.GINConvNet
-    pool:
-      class_path: rindti.layers.GMTNet
-  snnl:
-    class_path: rindti.losses.SoftNearestNeighborLoss
-
-data:
-  filename: results/prepare_all/colddrug_posneg_under_class_template_rinerator_label_none_label_none.pkl
+  class_path: rindti.models.ClassificationModel
+  init_args:
+    prot_encoder:
+      node_embed:
+        class_path: rindti.layers.GINConvNet
+      pool:
+        class_path: rindti.layers.GMTNet
+    drug_encoder:
+      node_embed:
+        class_path: rindti.layers.GINConvNet
+      pool:
+        class_path: rindti.layers.GMTNet
+    snnl:
+      class_path: rindti.losses.SoftNearestNeighborLoss
+    mlp:
+      class_path: rindti.layers.MLP
+data_module:
+  class_path: rindti.data.DTIDataModule
+  init_args:
+    filename: results/prepare_all/colddrug_posneg_under_class_template_rinerator_label_none_label_none.pkl
+trainer:
+  class_path: pytorch_lightning.Trainer
+  init_args:
+    gpus: 1

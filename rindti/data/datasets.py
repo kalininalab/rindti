@@ -85,6 +85,7 @@ class DTIDataset(InMemoryDataset):
             self.config["drug_max_nodes"] = 0
             for split in self.splits.keys():
                 data_list = []
+                self.config["ds_part"] = split
                 for i in all_data["data"]:
                     if i["split"] != split:
                         continue
@@ -99,6 +100,17 @@ class DTIDataset(InMemoryDataset):
                     self.config = self._set_types(data_list[0])
                 if data_list:
                     self.process_(data_list, split)
+
+    def __repr__(self):
+        proteins = set()
+        drugs = set()
+        labels = []
+        for i in self:
+            proteins.add(i.prot_id)
+            drugs.add(i.drug_id)
+            labels.append(i.label)
+        label_balance = round((sum(labels) / len(labels)).item(), 3)
+        return f"{self.config['ds_part']} DTI dataset. Prots: {len(proteins)}, Drugs: {len(drugs)}, Balance: {label_balance}"
 
 
 class PreTrainDataset(InMemoryDataset):

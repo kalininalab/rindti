@@ -10,6 +10,7 @@ from torch.functional import Tensor
 from rindti.utils.cli import get_module
 
 from ...data import TwoGraphData
+from ...layers import MLP
 from ...layers.base_layer import BaseLayer
 from ...losses import SoftNearestNeighborLoss
 from ...utils import remove_arg_prefix
@@ -27,20 +28,23 @@ class ClassificationModel(BaseModel):
         prot_encoder: Encoder = None,
         drug_encoder: Encoder = None,
         snnl: SoftNearestNeighborLoss = None,
+        mlp: MLP = None,
         optimiser: str = "adam",
         lr: float = 0.001,
         reduce_lr_factor: float = 0.5,
         reduce_lr_patience: int = 20,
         monitor: str = "val_loss",
         feat_method: str = "concat",
+        alpha: float = 0.01,
         **kwargs,
     ):
         super().__init__()
         self.save_hyperparameters()
+        self._determine_feat_method(feat_method, prot_encoder["hidden_dim"], drug_encoder["hidden_dim"])
         self.prot_encoder = Encoder(**prot_encoder)
         self.drug_encoder = Encoder(**drug_encoder)
         self.snnl = get_module(snnl)
-        self._determine_feat_method(feat_method, prot_encoder["hidden_dim"], drug_encoder["hidden_dim"])
+        self.mlp = get_module(mlp, input_dim=self.embed_dim, output_dim=1)
 
     def _load_pretrained(self, checkpoint_path: str) -> Iterable[BaseLayer]:
         """Load pretrained model
@@ -91,7 +95,8 @@ class ClassificationModel(BaseModel):
         labels = data.label.unsqueeze(1)
         bce_loss = F.binary_cross_entropy(fwd_dict["pred"], labels.float())
         metrics = self._get_class_metrics(fwd_dict["pred"], labels)
-        snnl = self.snnl(fwd_dict["joint_embed"], data.label).mean()
+        # snnl = self.snnl(fwd_dict["joint_embed"], data.label)["graph_loss"].mean()
+        snnl = torch.tensor(0, device=self.device, dtype=torch.float)
         metrics.update(
             dict(
                 loss=bce_loss + self.hparams.alpha * snnl,
