@@ -16,12 +16,12 @@ from ...data import TwoGraphData
 from ...layers import MLP
 from ...layers.base_layer import BaseLayer
 from ...utils import remove_arg_prefix
-from ..base_model import BaseModel
+from ..base_model import BaseDTIModel
 from ..encoder import Encoder
 from ..pretrain import BGRLModel, GraphLogModel, InfoGraphModel, PfamModel
 
 
-class ClassificationModel(BaseModel):
+class ClassificationModel(BaseDTIModel):
 
     """DTI classification model
 

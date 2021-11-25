@@ -1,32 +1,47 @@
-from typing import List
+from typing import List, Union
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 import torch
+from pytorch_lightning.core.lightning import LightningModule
 from torch import Tensor
 
+from rindti.utils.cli import get_module
+
 from ...data import DataCorruptor, TwoGraphData
-from ...layers import MLP
+from ...layers import MLP, BaseConv
 from ...losses import GeneralisedLiftedStructureLoss, NodeLoss, PfamCrossEntropyLoss, SoftNearestNeighborLoss
-from ..base_model import BaseModel
+from ..base_model import BasePretrainModel
 from ..encoder import Encoder
 
 
-class PfamModel(BaseModel):
+class PfamModel(BasePretrainModel):
     """Model for Pfam class comparison problem"""
 
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        node_pred: Union[MLP, BaseConv],
+        encoder: Encoder,
+        loss: LightningModule,
+        node_loss: NodeLoss,
+        masker: DataCorruptor,
+        _optimizer_args: dict = None,
+        _lr_scheduler_args: dict = None,
+        _fam_list: List[str] = None,
+    ):
         super().__init__()
         self.save_hyperparameters()
-        self.node_pred = MLP(kwargs["hidden_dim"], kwargs["feat_dim"], num_layers=3, hidden_dim=128)
-        self.encoder = Encoder(return_nodes=True, **kwargs)
-        self.loss = {
-            "snnl": SoftNearestNeighborLoss,
-            "lifted": GeneralisedLiftedStructureLoss,
-            "crossentropy": PfamCrossEntropyLoss,
-        }[kwargs["loss"]](**kwargs)
-        self.node_loss = NodeLoss(**kwargs)
-        self.masker = DataCorruptor(dict(x=self.hparams.frac), type="mask")
+        self.node_pred = get_module(
+            node_pred,
+            input_dim=encoder["hidden_dim"],
+            output_dim=encoder["feat_dim"] + 1,
+        )
+        self.encoder = Encoder(**encoder)
+        self.loss = get_module(loss, _fam_list)
+        self.node_loss = get_module(node_loss)
+        self.masker = get_module(masker)
+        self.optimizer_args = _optimizer_args
+        self.lr_scheduler_args = _lr_scheduler_args
 
     @property
     def fam_idx(self) -> List[int]:

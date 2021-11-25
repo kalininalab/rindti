@@ -6,13 +6,13 @@ from typing import Tuple
 import torch
 from torch_geometric.data import Data
 
-from ..base_model import BaseModel
+from ..base_model import BasePretrainModel
 from ..encoder import Encoder
 
 # NCE loss between graphs and prototypes
 
 
-class GraphLogModel(BaseModel):
+class GraphLogModel(BasePretrainModel):
     """Work in progress
     https://github.com/DeepGraphLearning/GraphLoG
     https://arxiv.org/pdf/2106.04113.pdf

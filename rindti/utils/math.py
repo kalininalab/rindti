@@ -6,7 +6,7 @@ def split_random(dataset, train_frac: float = 0.8):
     """Randomly split dataset"""
     tot = len(dataset)
     train = int(tot * train_frac)
-    val = int(tot * (1 - train_frac))
+    val = tot - train
     return random_split(dataset, [train, val])
 
 

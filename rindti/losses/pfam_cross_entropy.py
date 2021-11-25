@@ -1,3 +1,5 @@
+from typing import Optional
+
 import torch
 from pytorch_lightning import LightningModule
 from sklearn.preprocessing import LabelEncoder
@@ -10,12 +12,12 @@ from ..layers import MLP
 class PfamCrossEntropyLoss(LightningModule):
     """Simple cross=entropy loss with the added MLP to match dimensions"""
 
-    def __init__(self, **kwargs):
+    def __init__(self, hidden_dim: Optional[int] = None, _fam_list: Optional[list] = None):
         super().__init__()
-        self.mlp = MLP(kwargs["hidden_dim"], len(kwargs["fam_list"]))
+        self.mlp = MLP(hidden_dim, len(_fam_list))
         self.loss = torch.nn.CrossEntropyLoss()
         self.label_encoder = LabelEncoder()
-        self.label_encoder.fit(kwargs["fam_list"])
+        self.label_encoder.fit(_fam_list)
 
     def forward(self, x: Tensor, y: list) -> Tensor:
         """Forward pass of the module"""

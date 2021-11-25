@@ -9,7 +9,7 @@ from torch.functional import Tensor
 from torch_geometric.data import Data
 
 from ...data import DataCorruptor
-from ..base_model import BaseModel
+from ..base_model import BasePretrainModel
 from ..encoder import Encoder
 
 
@@ -58,7 +58,7 @@ def init_weights(m):
         m.bias.data.fill_(0.01)
 
 
-class BGRLModel(BaseModel):
+class BGRLModel(BasePretrainModel):
     """Bootrstrapped Graph Representational learning"""
 
     def __init__(self, moving_average_decay: float = 0.99, epochs: int = 1000, **kwargs):

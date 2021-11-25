@@ -187,3 +187,11 @@ class BaseModel(LightningModule):
         optimizer = instantiate_class(self.parameters(), self.optimizer_args)
         scheduler = instantiate_class(optimizer, self.lr_scheduler_args)
         return {"optimizer": optimizer, "lr_scheduler": scheduler}
+
+
+class BasePretrainModel(BaseModel):
+    pass
+
+
+class BaseDTIModel(BaseModel):
+    pass

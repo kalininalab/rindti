@@ -5,6 +5,7 @@ from typing import Dict, Tuple, Union
 
 import numpy as np
 import torch
+from jsonargparse.typehints import lazy_instance
 from torch_geometric.data import Data
 
 from .data import TwoGraphData
@@ -98,14 +99,13 @@ class DataCorruptor:
     """Corrupt or mask the nodes in a graph (or graph pair)
 
     Args:
-        frac (Dict[str, float]): dict of which attributes to corrupt ({'x' : 0.05} or {'prot_x' : 0.1, 'drug_x' : 0.2})
         type (str, optional): 'corrupt' or 'mask'. Corrupt puts new values sampled from old, mask puts zeroes. Defaults to 'mask'.
     """
 
-    def __init__(self, frac: Dict[str, float], type: str = "mask"):
+    def __init__(self, type: str = "mask", x: float = None, prot_x: float = None, drug_x: float = None):
         self.type = type
-        self.frac = {k: v for k, v in frac.items() if v > 0}
-        self._set_corr_func()
+        self.x = x
+        self.frac = {"x": x, "prot_x": prot_x, "drug_x": drug_x}
 
     def _set_corr_func(self):
         """Sets the necessary corruption function"""

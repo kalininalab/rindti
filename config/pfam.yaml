@@ -1,10 +1,26 @@
 seed_everything: 42
 data:
-  filename: results/prepare_all/colddrug_posneg_under_class_template_rinerator_label_none_label_none.pkl
+  filename: results/distance_based/protein_data_whole_label_none.pkl
   batch_size: 128
   num_workers: 16
 model:
-  class_path: rindti.models.ClassificationModel
+  class_path: rindti.models.PfamModel
+  init_args:
+    node_loss:
+      class_path: rindti.losses.NodeLoss
+    loss:
+      class_path: rindti.losses.PfamCrossEntropyLoss
+    masker:
+      class_path: rindti.data.DataCorruptor
+      init_args:
+        x: 0.1
+    node_pred:
+      class_path: rindti.layers.MLP
+    encoder:
+      node_embed:
+        class_path: rindti.layers.GINConvNet
+      pool:
+        class_path: rindti.layers.GMTNet
 trainer:
   gpus: 1
   callbacks:
@@ -16,7 +32,6 @@ trainer:
       init_args:
         monitor: val_loss
         patience: 50
-
 optimizer:
   class_path: torch.optim.RMSprop
   init_args:

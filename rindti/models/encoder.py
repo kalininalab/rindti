@@ -33,7 +33,7 @@ class Encoder(BaseModel):
         self.hidden_dim = hidden_dim
         self.node_embed = get_module(node_embed, input_dim=hidden_dim, output_dim=hidden_dim)
         pool["init_args"]["max_nodes"] = max_nodes
-        self.pool = get_module(pool, input_dim=hidden_dim, output_dim=hidden_dim)
+        self.pool = get_module(pool, input_dim=hidden_dim, output_dim=hidden_dim, max_nodes=max_nodes)
         self.feat_embed = self._get_feat_embed()
 
     def forward(

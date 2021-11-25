@@ -150,11 +150,9 @@ class PreTrainDataset(InMemoryDataset):
         df = pd.read_pickle(self.filename)
         data_list = []
         for id, x in df["data"].to_dict().items():
-            if "index_mapping" in x:
-                del x["index_mapping"]
             self.config["max_nodes"] = max(self.config["max_nodes"], x["x"].size(0))
             x["id"] = id
-            data_list.append(Data(**x))
+            data_list.append(x)
 
         if self.pre_filter is not None:
             data_list = [data for data in data_list if self.pre_filter(data)]
@@ -162,6 +160,7 @@ class PreTrainDataset(InMemoryDataset):
         if self.pre_transform is not None:
             data_list = [self.pre_transform(data) for data in data_list]
         self.config["feat_type"] = get_type(data_list[0], "x")
+        self.config["feat_dim"] = data_list[0]["x"].size(0)
         self.config["edge_type"] = get_type(data_list[0], "edge_feats")
         data, slices = self.collate(data_list)
         torch.save((data, slices, self.config), self.processed_paths[0])

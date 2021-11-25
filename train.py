@@ -6,15 +6,16 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.utilities.cli import instantiate_class
 
 from rindti.data import DTIDataModule
-from rindti.models import ClassificationModel
+from rindti.models.base_model import BaseDTIModel
 from rindti.utils import MyCLI
 from rindti.utils.cli import get_module
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
 if __name__ == "__main__":
-    cli = MyCLI(ClassificationModel, DTIDataModule, subclass_mode_model=True, run=False)
+    cli = MyCLI(BaseDTIModel, DTIDataModule, subclass_mode_model=True, run=False)
     cfg = cli.config
+    print(cfg)
 
     callbacks = (
         [get_module(callback_cfg) for callback_cfg in cfg["trainer"]["callbacks"]]
