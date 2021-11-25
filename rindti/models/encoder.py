@@ -9,19 +9,21 @@ from torch.functional import Tensor
 from torch_geometric.data import Data
 
 from ..layers import BaseConv, BasePool, GINConvNet, GMTNet
+from ..utils.cli import get_module
 from .base_model import BaseModel
 
 
-# @final
+@final
 class Encoder(BaseModel):
     """Encoder for graphs"""
 
     def __init__(
         self,
-        node_embed: BaseConv = lazy_instance(GINConvNet),
-        pool: BasePool = lazy_instance(GMTNet),
+        node_embed: BaseConv,
+        pool: BasePool,
         feat_type: str = None,
         feat_dim: int = None,
+        max_nodes: int = None,
         hidden_dim: int = 64,
         **kwargs,
     ):
@@ -29,8 +31,9 @@ class Encoder(BaseModel):
         self.feat_type = feat_type
         self.feat_dim = feat_dim
         self.hidden_dim = hidden_dim
-        self.node_embed = node_embed
-        self.pool = pool
+        self.node_embed = get_module(node_embed, input_dim=hidden_dim, output_dim=hidden_dim)
+        pool["init_args"]["max_nodes"] = max_nodes
+        self.pool = get_module(pool, input_dim=hidden_dim, output_dim=hidden_dim)
         self.feat_embed = self._get_feat_embed()
 
     def forward(

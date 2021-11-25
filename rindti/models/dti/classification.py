@@ -3,6 +3,7 @@ from typing import Iterable
 
 import torch
 import torch.nn.functional as F
+from caffe2.python import lazy
 from jsonargparse import lazy_instance
 from jsonargparse.typing import final
 from matplotlib.pyplot import get
@@ -21,22 +22,36 @@ from ..pretrain import BGRLModel, GraphLogModel, InfoGraphModel, PfamModel
 
 
 class ClassificationModel(BaseModel):
-    """Model for DTI prediction as a class problem"""
+
+    """DTI classification model
+
+    Args:
+        prot_encoder (Encoder): dictionary with `class_path` and `init_args` that describes the protein encoder
+        drug_encoder (Encoder): dictionary with `class_path` and `init_args` that describes the drug encoder
+        mlp (MLP): dictionary with `class_path` and `init_args` that describes the MLP
+        _optimizer_args (dict): dictionary with `class_path` and `init_args` that describes the optimizer
+        _lr_scheduler_args (dict): dictionary with `class_path` and `init_args` that describes the learning rate scheduler
+        feat_method (str, optional): How to merge the features. Defaults to "element_l1".
+    """
 
     def __init__(
         self,
-        prot_encoder: Encoder = lazy_instance(Encoder),
-        drug_encoder: Encoder = lazy_instance(Encoder),
-        mlp: MLP = lazy_instance(MLP, output_dim=1),
+        prot_encoder: Encoder,
+        drug_encoder: Encoder,
+        mlp: MLP,
+        _optimizer_args: dict = None,
+        _lr_scheduler_args: dict = None,
         feat_method: str = "element_l1",
         **kwargs,
     ):
         super().__init__()
-        # self.save_hyperparameters()
-        self.prot_encoder = get_module(prot_encoder)
-        self.drug_encoder = get_module(drug_encoder)
+        self.save_hyperparameters()
+        self.prot_encoder = Encoder(**prot_encoder)
+        self.drug_encoder = Encoder(**drug_encoder)
         self._determine_feat_method(feat_method)
         self.mlp = get_module(mlp, input_dim=self.embed_dim, output_dim=1)
+        self.optimizer_args = _optimizer_args
+        self.lr_scheduler_args = _lr_scheduler_args
 
     def _load_pretrained(self, checkpoint_path: str) -> Iterable[BaseLayer]:
         """Load pretrained model

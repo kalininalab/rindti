@@ -5,6 +5,19 @@ data:
   num_workers: 16
 model:
   class_path: rindti.models.ClassificationModel
+  init_args:
+    prot_encoder:
+      node_embed:
+        class_path: rindti.layers.GINConvNet
+      pool:
+        class_path: rindti.layers.GMTNet
+    drug_encoder:
+      node_embed:
+        class_path: rindti.layers.GINConvNet
+      pool:
+        class_path: rindti.layers.GMTNet
+    mlp:
+      class_path: rindti.layers.MLP
 trainer:
   gpus: 1
   callbacks:

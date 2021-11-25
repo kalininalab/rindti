@@ -25,5 +25,8 @@ if __name__ == "__main__":
         del cfg["trainer"]["callbacks"]
     trainer = Trainer(**cfg["trainer"], callbacks=callbacks)
     data = DTIDataModule(**cfg["data"])
+    data.setup(stage="fit")
     print(data)
-    model = get_module(cfg["model"])
+    data.update_model_args(cfg["model"]["init_args"])
+    model = get_module(cfg["model"], _optimizer_args=cfg["optimizer"], _lr_scheduler_args=cfg["lr_scheduler"])
+    trainer.fit(model, data)

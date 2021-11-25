@@ -2,6 +2,7 @@ from typing import Tuple, Union
 
 import torch
 from pytorch_lightning import LightningModule
+from pytorch_lightning.utilities.cli import instantiate_class
 from torch import LongTensor, Tensor, nn
 from torch.optim import SGD, Adam, AdamW, RMSprop
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -182,17 +183,7 @@ class BaseModel(LightningModule):
         """What to do at the end of a test epoch. Logs everything, saves hyperparameters"""
         self.shared_epoch_end(outputs, "test_epoch_", log_hparams=True)
 
-    # def configure_optimizers(self) -> Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler._LRScheduler]:
-    #     """Configure the optimiser and/or lr schedulers"""
-    #     optimiser = {"adamw": AdamW, "adam": Adam, "sgd": SGD, "rmsprop": RMSprop}[self.hparams.optimiser]
-    #     optimiser = optimiser(params=self.parameters(), lr=self.hparams.lr)
-    #     lr_scheduler = {
-    #         "scheduler": ReduceLROnPlateau(
-    #             optimiser,
-    #             factor=self.hparams.reduce_lr_factor,
-    #             patience=self.hparams.reduce_lr_patience,
-    #             verbose=True,
-    #         ),
-    #         "monitor": self.hparams.monitor,
-    #     }
-    #     return [optimiser], [lr_scheduler]
+    def configure_optimizers(self):
+        optimizer = instantiate_class(self.parameters(), self.optimizer_args)
+        scheduler = instantiate_class(optimizer, self.lr_scheduler_args)
+        return {"optimizer": optimizer, "lr_scheduler": scheduler}
