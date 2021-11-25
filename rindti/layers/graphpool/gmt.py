@@ -17,11 +17,12 @@ class GMTNet(BasePool):
         output_dim: int = None,
         hidden_dim: int = 64,
         ratio: float = 0.25,
-        max_nodes: int = 600,
+        max_nodes: int = 0,
         num_heads: int = 4,
         **kwargs,
     ):
         assert input_dim is not None and output_dim is not None, "input_dim and output_dim must be specified"
+        assert max_nodes > 0, "max_nodes must be greater than 0"
         super().__init__()
         self.pool = GraphMultisetTransformer(
             input_dim,

@@ -69,7 +69,7 @@ class DTIDataModule(BaseDataModule):
         self.prot_edge_type = self.config["prot_edge_type"]
         self.drug_edge_type = self.config["drug_edge_type"]
         self.prot_max_nodes = self.config["prot_max_nodes"]
-        self.prot_max_nodes = self.config["prot_max_nodes"]
+        self.drug_max_nodes = self.config["drug_max_nodes"]
 
     def _dl_kwargs(self, shuffle: bool = False):
         kwargs = super()._dl_kwargs(shuffle)
