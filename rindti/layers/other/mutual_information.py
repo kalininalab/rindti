@@ -17,7 +17,8 @@ class MutualInformation(BaseLayer):
     """Estimate MI between two entries. Uses MLP
     https://arxiv.org/pdf/1808.06670.pdf"""
 
-    def __init__(self, input_dim: int, hidden_dim: int):
+    def __init__(self, input_dim: int = None, hidden_dim: int = None):
+        assert input_dim is not None, "input_dim must be specified"
         super().__init__()
         self.x_mlp = MLP(input_dim, hidden_dim, hidden_dim)
         self.y_mlp = MLP(input_dim, hidden_dim, hidden_dim)

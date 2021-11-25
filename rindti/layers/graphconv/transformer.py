@@ -12,8 +12,8 @@ class TransformerNet(BaseConv):
 
     def __init__(
         self,
-        input_dim,
-        output_dim: int,
+        input_dim: int = None,
+        output_dim: int = None,
         hidden_dim: int = 64,
         dropout: float = 0.1,
         edge_dim: int = None,
@@ -22,12 +22,13 @@ class TransformerNet(BaseConv):
         num_layers: int = 3,
         **kwargs,
     ):
+        assert input_dim is not None and output_dim is not None, "input_dim and output_dim must be specified"
         super().__init__()
         self.edge_type = edge_type
-        if edge_type == "none":
-            edge_dim = None
         if edge_type == "label":
             self.edge_embed = nn.Embedding(edge_dim + 1, edge_dim)
+        elif edge_type == "none":
+            edge_dim = None
         self.inp = TransformerConv(
             input_dim,
             hidden_dim,

@@ -1,7 +1,7 @@
 from importlib import import_module
 
 import yaml
-from pytorch_lightning.utilities.cli import LightningCLI
+from pytorch_lightning.utilities.cli import LightningArgumentParser, LightningCLI
 from torch import FloatTensor, LongTensor
 
 from ..layers.base_layer import BaseLayer
@@ -86,19 +86,32 @@ def add_arg_prefix(prefix: str, kwargs: dict) -> dict:
 
 
 class TrainCLI(LightningCLI):
-    pass
+    """CLI for training"""
 
-    def add_arguments_to_parser(self, parser):
+    def add_arguments_to_parser(self, parser: LightningArgumentParser):
+        """Add arguments to the parser"""
         for p in ["prot", "drug"]:
             parser.link_arguments(
-                f"data.{p}_feat_dim", f"model.{p}_encoder.init_args.feat_dim", apply_on="instantiate"
+                f"data.{p}_feat_dim",
+                f"model.init_args.{p}_encoder.init_args.feat_dim",
+                apply_on="instantiate",
             )
             parser.link_arguments(
-                f"data.{p}_feat_type", f"model.{p}_encoder.init_args.feat_type", apply_on="instantiate"
+                f"data.{p}_feat_type",
+                f"model.init_args.{p}_encoder.init_args.feat_type",
+                apply_on="instantiate",
             )
             parser.link_arguments(
-                f"data.{p}_edge_dim", f"model.{p}_encoder.init_args.edge_dim", apply_on="instantiate"
+                f"data.{p}_max_nodes",
+                f"model.init_args.{p}_encoder.init_args.max_nodes",
+                apply_on="instantiate",
             )
-            parser.link_arguments(
-                f"data.{p}_edge_type", f"model.{p}_encoder.init_args.edge_type", apply_on="instantiate"
-            )
+            for k in ["input_dim", "output_dim"]:
+                parser.link_arguments(
+                    f"model.init_args.{p}_encoder.init_args.hidden_dim",
+                    f"model.init_args.{p}_encoder.init_args.node_embed.init_args.{k}",
+                )
+                parser.link_arguments(
+                    f"model.init_args.{p}_encoder.init_args.hidden_dim",
+                    f"model.init_args.{p}_encoder.init_args.pool.init_args.{k}",
+                )

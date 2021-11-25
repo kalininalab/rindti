@@ -117,9 +117,9 @@ class BaseModel(LightningModule):
         mae = mean_absolute_error(output, labels)
         expvar = explained_variance(output, labels)
         return {
-            "corr": corr,
-            "mae": mae,
-            "expvar": expvar,
+            "corr": corr.detach(),
+            "mae": mae.detach(),
+            "expvar": expvar.detach(),
         }
 
     def _get_class_metrics(self, output: Tensor, labels: LongTensor):

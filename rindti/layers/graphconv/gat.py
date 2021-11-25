@@ -19,13 +19,14 @@ class GatConvNet(BaseConv):
 
     def __init__(
         self,
-        input_dim,
-        output_dim: int,
+        input_dim: int = None,
+        output_dim: int = None,
         hidden_dim: int = 64,
         heads: int = 4,
         num_layers: int = 4,
         **kwargs,
     ):
+        assert input_dim is not None and output_dim is not None, "input_dim and output_dim must be specified"
         super().__init__()
         self.inp = GATConv(input_dim, hidden_dim, heads, concat=False)
         self.mid_layers = ModuleList(

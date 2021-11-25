@@ -25,6 +25,13 @@ class BaseDataModule(LightningDataModule):
         self.shuffle = shuffle
         self.setup()
 
+    def _dl_kwargs(self, shuffle: bool = False):
+        return dict(
+            batch_size=self.batch_size,
+            shuffle=self.shuffle if shuffle else False,
+            num_workers=self.num_workers,
+        )
+
     def get_config(self, prefix: str = "") -> dict:
         """Get the config for a single prefix"""
         return {k.strip(prefix): v for k, v in self.config.items() if k.startswith(prefix)}
@@ -61,47 +68,23 @@ class DTIDataModule(BaseDataModule):
         self.drug_edge_dim = self.config["drug_edge_dim"]
         self.prot_edge_type = self.config["prot_edge_type"]
         self.drug_edge_type = self.config["drug_edge_type"]
+        self.prot_max_nodes = self.config["prot_max_nodes"]
+        self.prot_max_nodes = self.config["prot_max_nodes"]
 
     def _dl_kwargs(self, shuffle: bool = False):
-        return dict(
-            batch_size=self.batch_size,
-            shuffle=self.shuffle if shuffle else False,
-            num_workers=self.num_workers,
-            follow_batch=["prot_x", "drug_x"],
-        )
-
-    def update_model_args(self, model_init_args: dict):
-        """Update the model arguments with the config"""
-        for pref in ["prot_", "drug_"]:
-            model_init_args[f"{pref}encoder"].update(self.get_config(pref))
+        kwargs = super()._dl_kwargs(shuffle)
+        kwargs["follow_batch"] = ["prot_x", "drug_x"]
+        return kwargs
 
 
 class PreTrainDataModule(BaseDataModule):
-    def __init__(
-        self,
-        filename: str,
-        batch_size: int = 128,
-        num_workers: int = 16,
-        shuffle: bool = True,
-        sampler: Sampler = None,
-        **kwargs,
-    ):
-        super().__init__(filename, batch_size=batch_size, num_workers=num_workers, shuffle=shuffle, **kwargs)
-        self.sampler = sampler
-
     def setup(self, stage: str = None):
         """Load the individual datasets"""
         if stage == "fit" or stage is None:
             ds = PreTrainDataset(self.filename).shuffle()
             self.train, self.val = split_random(ds, 0.8)
-        self.config = self.train.config
-
-    def train_dataloader(self):
-        if self.sampler:
-            sampler = get_module(self.sampler, self.train)
-            return DataLoader(self.train, batch_sampler=sampler, num_workers=self.num_workers)
-        return super().train_dataloader()
-
-    def update_model_args(self, model_init_args: dict):
-        """Update the model arguments with the config"""
-        model_init_args["encoder"].update(self.get_config())
+        self.feat_dim = self.config["feat_dim"]
+        self.feat_type = self.config["feat_type"]
+        self.edge_dim = self.config["edge_dim"]
+        self.edge_type = self.config["edge_type"]
+        self.max_nodes = self.config["max_nodes"]

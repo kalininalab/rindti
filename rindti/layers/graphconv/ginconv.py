@@ -26,10 +26,7 @@ class GINConvNet(BaseConv):
         num_layers: int = 3,
         **kwargs,
     ):
-        if input_dim is None:
-            input_dim = hidden_dim
-        if output_dim is None:
-            output_dim = hidden_dim
+        assert input_dim is not None and output_dim is not None, "input_dim and output_dim must be specified"
         super().__init__()
         self.inp = GINConv(
             nn.Sequential(

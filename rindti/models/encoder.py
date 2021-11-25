@@ -2,15 +2,13 @@ from argparse import ArgumentParser
 from pprint import pprint
 from typing import Tuple, Union
 
+from jsonargparse import lazy_instance
 from jsonargparse.typing import final
 from torch import nn
 from torch.functional import Tensor
 from torch_geometric.data import Data
 
-from rindti.layers.graphconv.ginconv import GINConvNet
-
-from ..layers import BaseConv, BasePool
-from ..utils import get_module
+from ..layers import BaseConv, BasePool, GINConvNet, GMTNet
 from .base_model import BaseModel
 
 
@@ -20,22 +18,16 @@ class Encoder(BaseModel):
 
     def __init__(
         self,
-        node_embed: BaseConv,
-        pool: BasePool,
+        node_embed: BaseConv = lazy_instance(GINConvNet),
+        pool: BasePool = lazy_instance(GMTNet),
         feat_type: str = None,
-        edge_type: str = None,
         feat_dim: int = None,
-        edge_dim: int = None,
-        max_nodes: int = None,
         hidden_dim: int = 64,
         **kwargs,
     ):
         super().__init__()
         self.feat_type = feat_type
-        self.edge_type = edge_type
         self.feat_dim = feat_dim
-        self.edge_dim = edge_dim
-        self.max_nodes = max_nodes
         self.hidden_dim = hidden_dim
         self.node_embed = node_embed
         self.pool = pool

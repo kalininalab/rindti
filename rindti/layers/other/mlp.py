@@ -19,7 +19,7 @@ class MLP(BaseLayer):
     def __init__(
         self,
         input_dim: int = None,
-        output_dim: int = 1,
+        output_dim: int = None,
         hidden_dim: int = 64,
         num_layers: int = 2,
         dropout: float = 0.2,

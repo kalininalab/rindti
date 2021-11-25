@@ -3,6 +3,7 @@ from typing import Iterable
 
 import torch
 import torch.nn.functional as F
+from jsonargparse import lazy_instance
 from jsonargparse.typing import final
 from matplotlib.pyplot import get
 from torch.functional import Tensor
@@ -19,19 +20,19 @@ from ..encoder import Encoder
 from ..pretrain import BGRLModel, GraphLogModel, InfoGraphModel, PfamModel
 
 
-@final
 class ClassificationModel(BaseModel):
     """Model for DTI prediction as a class problem"""
 
     def __init__(
         self,
-        prot_encoder: Encoder,
-        drug_encoder: Encoder,
-        mlp: MLP,
+        prot_encoder: Encoder = lazy_instance(Encoder),
+        drug_encoder: Encoder = lazy_instance(Encoder),
+        mlp: MLP = lazy_instance(MLP, output_dim=1),
         feat_method: str = "element_l1",
         **kwargs,
     ):
         super().__init__()
+        # self.save_hyperparameters()
         self.prot_encoder = prot_encoder
         self.drug_encoder = drug_encoder
         self.mlp = mlp
@@ -68,12 +69,7 @@ class ClassificationModel(BaseModel):
         prot_embed = self.prot_encoder(prot)
         drug_embed = self.drug_encoder(drug)
         joint_embedding = self.merge_features(drug_embed, prot_embed)
-        return dict(
-            pred=torch.sigmoid(self.mlp(joint_embedding)),
-            prot_embed=prot_embed,
-            drug_embed=drug_embed,
-            joint_embed=joint_embedding,
-        )
+        return self.mlp(joint_embedding)
 
     def shared_step(self, data: TwoGraphData) -> dict:
         """Step that is the same for train, validation and test
@@ -82,9 +78,9 @@ class ClassificationModel(BaseModel):
         """
         prot = remove_arg_prefix("prot_", data)
         drug = remove_arg_prefix("drug_", data)
-        fwd_dict = self.forward(prot, drug)
+        pred = torch.sigmoid(self.forward(prot, drug))
         labels = data.label.unsqueeze(1)
-        bce_loss = F.binary_cross_entropy(fwd_dict["pred"], labels.float())
-        metrics = self._get_class_metrics(fwd_dict["pred"], labels)
+        bce_loss = F.binary_cross_entropy(pred, labels.float())
+        metrics = self._get_class_metrics(pred, labels)
         metrics["loss"] = bce_loss
         return metrics

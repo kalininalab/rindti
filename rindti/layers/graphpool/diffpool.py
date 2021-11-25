@@ -26,8 +26,8 @@ class DiffPoolNet(BasePool):
 
     def __init__(
         self,
-        input_dim: int,
-        output_dim: int,
+        input_dim: int = None,
+        output_dim: int = None,
         hidden_dim: int = 64,
         max_nodes: int = 600,
         dropout: float = 0.2,
