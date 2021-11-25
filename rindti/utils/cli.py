@@ -85,31 +85,8 @@ def add_arg_prefix(prefix: str, kwargs: dict) -> dict:
     return {prefix + k: v for (k, v) in kwargs.items() if k != "index_mapping" and v is not None}
 
 
-class TrainCLI(LightningCLI):
+class MyCLI(LightningCLI):
     """CLI for training"""
 
-    def add_arguments_to_parser(self, parser: LightningArgumentParser):
-        """Add arguments to the parser"""
-        ### Update model args from data
-        for pref in ["prot", "drug"]:
-            enc = f"model.init_args.{pref}_encoder.init_args"
-            parser.link_arguments(f"data.{pref}_feat_dim", f"{enc}.feat_dim", apply_on="instantiate")
-            parser.link_arguments(f"data.{pref}_feat_type", f"{enc}.feat_type", apply_on="instantiate")
-            parser.link_arguments(f"data.{pref}_max_nodes", f"{enc}.pool.init_args.max_nodes", apply_on="instantiate")
-            ### Link model args to itself
-            for k in ["input_dim", "output_dim"]:
-                parser.link_arguments(f"{enc}.hidden_dim", f"{enc}.node_embed.init_args.{k}")
-                parser.link_arguments(f"{enc}.hidden_dim", f"{enc}.pool.init_args.{k}")
-
-
-class PreTrainCLI(LightningCLI):
-    """CLI for pretraining"""
-
-    def add_arguments_to_parser(self, parser: LightningArgumentParser):
-        enc = "model.init_args.encoder.init_args"
-        parser.link_arguments("data.feat_dim", f"{enc}.feat_dim", apply_on="instantiate")
-        parser.link_arguments("data.feat_type", f"{enc}.feat_type", apply_on="instantiate")
-        parser.link_arguments("data.max_nodes", f"{enc}.pool.init_args.max_nodes", apply_on="instantiate")
-        for k in ["input_dim", "output_dim"]:
-            parser.link_arguments(f"{enc}.hidden_dim", f"{enc}.node_embed.init_args.{k}")
-            parser.link_arguments(f"{enc}.hidden_dim", f"{enc}.pool.init_args.{k}")
+    def instantiate_classes(self) -> None:
+        return
