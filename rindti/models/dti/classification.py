@@ -33,10 +33,10 @@ class ClassificationModel(BaseModel):
     ):
         super().__init__()
         # self.save_hyperparameters()
-        self.prot_encoder = prot_encoder
-        self.drug_encoder = drug_encoder
-        self.mlp = mlp
+        self.prot_encoder = get_module(prot_encoder)
+        self.drug_encoder = get_module(drug_encoder)
         self._determine_feat_method(feat_method)
+        self.mlp = get_module(mlp, input_dim=self.embed_dim, output_dim=1)
 
     def _load_pretrained(self, checkpoint_path: str) -> Iterable[BaseLayer]:
         """Load pretrained model
