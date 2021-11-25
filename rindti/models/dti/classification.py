@@ -76,6 +76,7 @@ class ClassificationModel(BaseModel):
         Returns:
             dict: dict with different metrics - losses, accuracies etc. Has to contain 'loss'.
         """
+        self.log("batch_size", len(data))
         prot = remove_arg_prefix("prot_", data)
         drug = remove_arg_prefix("drug_", data)
         pred = torch.sigmoid(self.forward(prot, drug))

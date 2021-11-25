@@ -1,36 +1,28 @@
-data: /scratch/SCRATCH_NVME/ilya/pretrain_data/pfam_fragments_label_none.pkl
-# Hardware
-batch_size: 2048
-gpus: 1
-max_epochs: 1000
-num_workers: 16
-profiler: null
-seed: 42
-# Optimisation + learning
-early_stop_patience: 200
-gradient_clip_val: 100
-lr: 0.001
-monitor: train_loss
-optimiser: adam
-reduce_lr_factor: 0.1
-reduce_lr_patience: 100
-# Model
-dropout: 0.1
-hidden_dim: 64
-model: pfam
-batch_per_epoch: 1000
-prot_per_fam: 16
+seed_everything: 42
+data:
+  filename: results/prepare_all/colddrug_posneg_under_class_template_rinerator_label_none_label_none.pkl
+  batch_size: 128
+  num_workers: 16
+model:
+  class_path: rindti.models.ClassificationModel
+trainer:
+  gpus: 1
+  callbacks:
+    - class_path: pytorch_lightning.callbacks.ModelCheckpoint
+      init_args:
+        monitor: val_loss
 
-loss: crossentropy # lifted, crossentropy or snnl
-temperature: 0.1
-optim_temperature: false
-grad_step: 0.1
-node_pred: True
-frac: 0.1
-alpha: 1
-# Encoder
-node_embed: ginconv
-num_heads: 1
-num_layers: 3
-pool: diffpool
-ratio: 0.25
+    - class_path: pytorch_lightning.callbacks.EarlyStopping
+      init_args:
+        monitor: val_loss
+        patience: 50
+
+optimizer:
+  class_path: torch.optim.RMSprop
+  init_args:
+    lr: 0.001
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.CyclicLR
+  init_args:
+    base_lr: 0.001
+    max_lr: 0.01

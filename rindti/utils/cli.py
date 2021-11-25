@@ -100,3 +100,16 @@ class TrainCLI(LightningCLI):
             for k in ["input_dim", "output_dim"]:
                 parser.link_arguments(f"{enc}.hidden_dim", f"{enc}.node_embed.init_args.{k}")
                 parser.link_arguments(f"{enc}.hidden_dim", f"{enc}.pool.init_args.{k}")
+
+
+class PreTrainCLI(LightningCLI):
+    """CLI for pretraining"""
+
+    def add_arguments_to_parser(self, parser: LightningArgumentParser):
+        enc = "model.init_args.encoder.init_args"
+        parser.link_arguments("data.feat_dim", f"{enc}.feat_dim", apply_on="instantiate")
+        parser.link_arguments("data.feat_type", f"{enc}.feat_type", apply_on="instantiate")
+        parser.link_arguments("data.max_nodes", f"{enc}.pool.init_args.max_nodes", apply_on="instantiate")
+        for k in ["input_dim", "output_dim"]:
+            parser.link_arguments(f"{enc}.hidden_dim", f"{enc}.node_embed.init_args.{k}")
+            parser.link_arguments(f"{enc}.hidden_dim", f"{enc}.pool.init_args.{k}")
