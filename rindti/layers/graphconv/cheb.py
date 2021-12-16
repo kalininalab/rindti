@@ -16,6 +16,7 @@ class ChebConvNet(BaseConv):
         output_dim (int): Size of the output vector
         hidden_dim (int, optional): Size of the hidden vector. Defaults to 32.
         K (int, optional): K parameter. Defaults to 1.
+        num_layers (int, optional): Number of layers. Defaults to 4.
     """
 
     def __init__(

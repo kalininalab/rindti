@@ -10,7 +10,12 @@ from ..layers import MLP
 
 
 class PfamCrossEntropyLoss(LightningModule):
-    """Simple cross=entropy loss with the added MLP to match dimensions"""
+    """Simple cross=entropy loss with the added MLP to match dimensions
+
+    Args:
+        hidden_dim (int, optional): Size of hidden layer. Defaults to None.
+        _fam_list (list, optional): list of all available protein families. Defaults to None.
+    """
 
     def __init__(self, hidden_dim: Optional[int] = None, _fam_list: Optional[list] = None):
         super().__init__()

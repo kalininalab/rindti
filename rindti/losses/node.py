@@ -6,14 +6,18 @@ from torchmetrics.functional import accuracy
 
 
 class NodeLoss(LightningModule):
-    """Calculate the loss for node masking"""
+    """Node label cross-entropy loss
+
+    Args:
+        weighted (bool, optional): Whether to weight by popularity. Defaults to True.
+    """
 
     def __init__(self, weighted: bool = True, **kwargs) -> None:
         super().__init__()
         self.weighted = weighted
 
     def forward(self, x: Tensor, target: Tensor) -> dict:
-        """Node loss and accuracy
+        """Forward pass
 
         Args:
             x (Tensor): prediction tensor of size (n_nodes, feat_dim).
@@ -41,8 +45,6 @@ class NodeLoss(LightningModule):
         Returns:
             Tensor: Tensor of size self.feat_dim.
         """
-        weights = []
-        for i in range(x.size(1)):
-            weights.append(target[target == i].size(0))
+        weights = [target[target == i].size(0) for i in range(x.size(1))]
         weights = 1 / (torch.tensor(weights, dtype=torch.float32, device=self.device) + 1)
         return weights / weights.sum()

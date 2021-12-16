@@ -13,6 +13,14 @@ class BaseDataModule(LightningDataModule):
     """Base data module, contains all the datasets for train, val and test"""
 
     def __init__(self, filename: str, batch_size: int = 128, num_workers: int = 16, shuffle: bool = True):
+        """Base DataModule
+
+        Args:
+            filename (str): Pickle file containing the dataset
+            batch_size (int, optional): Size of the batch. Defaults to 128.
+            num_workers (int, optional): Workers for loading the data. Defaults to 16.
+            shuffle (bool, optional): Whether to shuffle training set. Defaults to True.
+        """
         super().__init__()
         self.filename = filename
         self.batch_size = batch_size
@@ -39,7 +47,14 @@ class BaseDataModule(LightningDataModule):
 
 
 class DTIDataModule(BaseDataModule):
-    """Data module for the DTI dataset"""
+    """DataModule for the DTI class
+
+    Args:
+        filename (str): Pickle file containing the dataset
+        batch_size (int, optional): Size of the batch. Defaults to 128.
+        num_workers (int, optional): Workers for loading the data. Defaults to 16.
+        shuffle (bool, optional): Whether to shuffle training set. Defaults to True.
+    """
 
     def setup(self, stage: str = None):
         """Load the individual datasets"""
@@ -65,7 +80,16 @@ class DTIDataModule(BaseDataModule):
 
 
 class PreTrainDataModule(BaseDataModule):
-    """Data module for the pretrain dataset"""
+    """DataModule for the protein pretraining class
+
+    Args:
+        filename (str): Pickle file containing the dataset
+        batch_size (int, optional): Size of the batch. Defaults to 128.
+        num_workers (int, optional): Workers for loading the data. Defaults to 16.
+        shuffle (bool, optional): Whether to shuffle training set. Defaults to True.
+        sampler (Optional[Sampler], optional): Sampler for the training set. Defaults to None.
+        train_frac (float, optional): Fraction of the dataset to use for training. Defaults to 0.8.
+    """
 
     def __init__(self, sampler: Optional[Sampler] = None, train_frac: float = 0.8, *args, **kwargs):
         super().__init__(*args, **kwargs)

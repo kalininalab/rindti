@@ -9,8 +9,14 @@ from .base_conv import BaseConv
 
 
 class FilmConvNet(BaseConv):
-    """FiLMConv
-    https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.FiLMConv
+    """https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.FiLMConv
+
+    Args:
+        input_dim (int, optional): Input dimension size. Defaults to None.
+        output_dim (int, optional): Output dimension size. Defaults to None.
+        hidden_dim (int, optional): Hidden layer(s) size. Defaults to 64.
+        edge_dim (int, optional): Size of edge features. Defaults to None.
+        num_layers (int, optional): Number of layers. Defaults to 10.
     """
 
     def __init__(

@@ -15,7 +15,12 @@ def shifted_softplus(input):
 
 class MutualInformation(BaseLayer):
     """Estimate MI between two entries. Uses MLP
-    https://arxiv.org/pdf/1808.06670.pdf"""
+    https://arxiv.org/pdf/1808.06670.pdf
+
+    Args:
+        input_dim (int): Size of the input vector
+        hidden_dim (int): Size of the hidden vector
+    """
 
     def __init__(self, input_dim: int = None, hidden_dim: int = None):
         assert input_dim is not None, "input_dim must be specified"

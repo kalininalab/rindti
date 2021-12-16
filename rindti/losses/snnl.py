@@ -7,7 +7,14 @@ from torch import Tensor
 
 
 class SoftNearestNeighborLoss(LightningModule):
-    """https://arxiv.org/pdf/1902.01889.pdf"""
+    """https://arxiv.org/pdf/1902.01889.pdf
+
+    Args:
+        temperature (float, optional): Temperature hparameter, higher values mean larger distances are more valued. Defaults to 1.0.
+        eps (float, optional): Stability epsilon value. Defaults to 1e-6.
+        optim_temperature (bool, optional): Whether to do gradient descent to find best temperature. Defaults to False.
+        grad_step (float, optional): Grad descent step. Defaults to 0.2.
+    """
 
     def __init__(
         self,

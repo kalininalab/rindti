@@ -12,9 +12,11 @@ class GatConvNet(BaseConv):
     """Graph Attention Layer
 
     Args:
+        input_dim (int): Size of the input vector
         output_dim (int): Size of the output vector
         hidden_dim (int, optional): Size of the hidden vector. Defaults to 32.
         heads (int, optional): Number of heads for multi-head attention. Defaults to 4.
+        num_layers (int, optional): Number of layers. Defaults to 4.
     """
 
     def __init__(

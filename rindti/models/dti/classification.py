@@ -29,8 +29,6 @@ class ClassificationModel(BaseDTIModel):
         prot_encoder (Encoder): dictionary with `class_path` and `init_args` that describes the protein encoder
         drug_encoder (Encoder): dictionary with `class_path` and `init_args` that describes the drug encoder
         mlp (MLP): dictionary with `class_path` and `init_args` that describes the MLP
-        _optimizer_args (dict): dictionary with `class_path` and `init_args` that describes the optimizer
-        _lr_scheduler_args (dict): dictionary with `class_path` and `init_args` that describes the learning rate scheduler
         feat_method (str, optional): How to merge the features. Defaults to "element_l1".
     """
 

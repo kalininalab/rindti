@@ -16,7 +16,15 @@ from ..encoder import Encoder
 
 
 class PfamModel(BasePretrainModel):
-    """Model for Pfam class comparison problem"""
+    """Pretraining with Pfam Model
+
+    Args:
+        node_pred (Union[MLP, BaseConv]): Module for predicting original node labels
+        encoder (Encoder): Graph encoder
+        loss (LightningModule): Loss function
+        node_loss (NodeLoss): Loss function for node prediction
+        masker (DataCorruptor): Module for masking the node labels
+    """
 
     def __init__(
         self,

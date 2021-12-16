@@ -6,7 +6,14 @@ from .classification import ClassificationModel
 
 
 class RegressionModel(ClassificationModel):
-    """Model for DTI prediction as a reg problem"""
+    """DTI regression model
+
+    Args:
+        prot_encoder (Encoder): dictionary with `class_path` and `init_args` that describes the protein encoder
+        drug_encoder (Encoder): dictionary with `class_path` and `init_args` that describes the drug encoder
+        mlp (MLP): dictionary with `class_path` and `init_args` that describes the MLP
+        feat_method (str, optional): How to merge the features. Defaults to "element_l1".
+    """
 
     def shared_step(self, data: TwoGraphData) -> dict:
         """Step that is the same for train, validation and test

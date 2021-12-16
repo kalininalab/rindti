@@ -8,7 +8,17 @@ from .base_conv import BaseConv
 
 
 class TransformerNet(BaseConv):
-    """https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.TransformerConv"""
+    """https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.TransformerConv
+    Args:
+        input_dim (int, optional): Input dimension size. Defaults to None.
+        output_dim (int, optional): Output dimension size. Defaults to None.
+        hidden_dim (int, optional): Hidden layer(s) size. Defaults to 64.
+        heads (int, optional): Number of heads. Defaults to 1.
+        dropout (float, optional): Dropout probability. Defaults to 0.1.
+        edge_dim (int, optional): Size of edge features. Defaults to None.
+        edge_type (str, optional): Edge type. Defaults to "none".
+        num_layers (int, optional): Number of layers. Defaults to 3.
+    """
 
     def __init__(
         self,
