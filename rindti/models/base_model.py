@@ -184,6 +184,7 @@ class BaseModel(LightningModule):
         self.shared_epoch_end(outputs, "test_epoch_", log_hparams=True)
 
     def configure_optimizers(self):
+        """Configure optimizers"""
         optimizer = instantiate_class(self.parameters(), self.optimizer_args)
         scheduler = instantiate_class(optimizer, self.lr_scheduler_args)
         return {"optimizer": optimizer, "lr_scheduler": scheduler}
