@@ -87,6 +87,7 @@ def featurize(smiles: str) -> dict:
     """
     mol = Chem.MolFromSmiles(smiles)
     if not mol:  # when rdkit fails to read a molecule it returns None
+        print("Miss one:", smiles)
         return np.nan
     new_order = rdmolfiles.CanonicalRankAtoms(mol)
     mol = rdmolops.RenumberAtoms(mol, new_order)
@@ -98,9 +99,11 @@ def featurize(smiles: str) -> dict:
         btype = str(bond.GetBondType())
         # If bond type is unknown, remove molecule
         if btype not in edge_encoding.keys():
+            print("Miss two")
             return np.nan
         edge_feats.append(edge_encoding[btype])
     if not edges:  # If no edges (bonds) were found, remove molecule
+        print("Miss three")
         return np.nan
     atom_features = []
     for atom in mol.GetAtoms():

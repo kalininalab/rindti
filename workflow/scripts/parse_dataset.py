@@ -1,9 +1,19 @@
 import numpy as np
 import pandas as pd
+import os
 
-inter = pd.read_csv(snakemake.input.inter, sep="\t", dtype={"Drug_ID": str, "Target_ID": str, "Y": int})
+inter = pd.read_csv(snakemake.input.inter, sep="\t", dtype={"Drug_ID": str, "Target_ID": str, "Y": float})
 lig = pd.read_csv(snakemake.input.lig, sep="\t", dtype=str)
 lig.drop_duplicates("Drug_ID", inplace=True)
+lig.dropna(subset=["Drug"], inplace=True)
+
+drug_names = lig["Drug_ID"].tolist()
+prot_names = [x[:-4] for x in os.listdir(os.path.join(snakemake.config["source"], "structures")) if x.endswith(".pdb")]
+dropable_indices = []
+for index, row in inter.iterrows():
+    if row["Drug_ID"] not in drug_names or row["Target_ID"] not in prot_names:
+        dropable_indices.append(index)
+inter.drop(dropable_indices, inplace=True)
 
 config = snakemake.config["parse_dataset"]
 # If duplicates, take median of entries
