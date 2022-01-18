@@ -1,10 +1,7 @@
-from pprint import pprint
-
 import pytest
 import torch
 
-from rindti.layers import ChebConvNet, FilmConvNet, GatConvNet, GINConvNet, PNAConvNet, TransformerNet
-from rindti.utils import MyArgParser
+from rindti.layers import ChebConvNet, FilmConvNet, GatConvNet, GINConvNet, TransformerNet
 
 N_NODES = 10
 N_EDGES = 50
@@ -53,10 +50,6 @@ class BaseTestGraphConv:
         output = module.forward(**fake_data)
         assert output.size(0) == N_NODES
         assert output.size(1) == OUTPUT_DIM
-
-    def test_args(self):
-        parser = MyArgParser()
-        self.module.add_arguments(parser)
 
 
 class BaseLabelEdgeConv(BaseTestGraphConv):

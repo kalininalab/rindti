@@ -8,7 +8,7 @@ from pytorch_lightning.utilities.seed import seed_everything
 from torch.functional import Tensor
 from torch_geometric.loader import DataLoader
 
-from rindti.data import DTIDataset, PfamSampler, PreTrainDataset
+from rindti.data import DTIDataModule, DTIDataset, PfamSampler, PreTrainDataModule, PreTrainDataset
 
 PROT_FEAT_DIM = 20
 PROT_EDGE_DIM = 5
@@ -170,23 +170,27 @@ def sharded_pretrain_pickle(tmpdir_factory, request):
 
 
 @pytest.fixture(scope="session")
-def dti_dataset(dti_pickle):
-    return DTIDataset(dti_pickle)
-
-
-@pytest.fixture(scope="session")
-def dti_dataloader(dti_dataset):
-    return DataLoader(dti_dataset, batch_size=BATCH_SIZE, follow_batch=["prot_x", "drug_x"])
+def dti_datamodule(dti_pickle):
+    module = DTIDataModule(dti_pickle, batch_size=BATCH_SIZE)
+    module.setup()
+    return module
 
 
 @pytest.fixture
-def dti_batch(dti_dataloader):
-    return next(iter(dti_dataloader))
+def dti_batch(dti_datamodule):
+    return next(iter(dti_datamodule.train_dataloader()))
 
 
 @pytest.fixture(scope="session")
-def pretrain_dataset(pretrain_pickle):
-    return PreTrainDataset(pretrain_pickle)
+def pretrain_datamodule(pretrain_pickle):
+    module = PreTrainDataModule(pretrain_pickle, batch_size=BATCH_SIZE)
+    module.setup()
+    return module
+
+
+@pytest.fixture
+def pretrain_batch(pretrain_datamodule):
+    return next(iter(pretrain_datamodule.train_dataloader()))
 
 
 @pytest.fixture(scope="session")
@@ -197,16 +201,6 @@ def pfam_sampler(pretrain_dataset):
         prot_per_fam=PROT_PER_FAM,
         batch_per_epoch=BATCH_PER_EPOCH,
     )
-
-
-@pytest.fixture(scope="session")
-def pretrain_dataloader(pretrain_dataset, pfam_sampler):
-    return DataLoader(pretrain_dataset, batch_sampler=pfam_sampler)
-
-
-@pytest.fixture
-def pretrain_batch(pretrain_dataloader):
-    return next(iter(pretrain_dataloader))
 
 
 @pytest.fixture(autouse=True)

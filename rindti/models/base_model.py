@@ -52,7 +52,7 @@ class BaseModel(LightningModule):
         return nn.Embedding(self.feat_dim + 1, self.hidden_dim)
 
     def _get_onehot_embed(self) -> nn.Linear:
-        return nn.Linear(self.__slots__feat_dim, self.hidden_dim, bias=False)
+        return nn.Linear(self.feat_dim, self.hidden_dim, bias=False)
 
     def _get_feat_embed(self) -> Union[nn.Embedding, nn.Linear]:
         if self.feat_type == "onehot":

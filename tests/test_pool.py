@@ -3,7 +3,6 @@ from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 
 from rindti.layers import DiffPoolNet, GMTNet, MeanPool
-from rindti.utils import MyArgParser
 
 default_config = {
     "K": 1,
@@ -35,10 +34,6 @@ class BaseTestGraphPool:
         output = module.forward(fake_data.x, fake_data.edge_index, fake_data.batch)
         assert output.size(0) == 5
         assert output.size(1) == 32
-
-    def test_args(self):
-        parser = MyArgParser()
-        self.module.add_arguments(parser)
 
     def test_norm(self):
         """Pooling should return vector of length 1 for each graph"""

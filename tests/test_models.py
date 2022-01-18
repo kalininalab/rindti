@@ -1,74 +1,44 @@
+from pprint import pprint
+
 import pytest
 import torch
 
 from rindti.models import ClassificationModel, RegressionModel
-from rindti.models.base_model import node_embedders, poolers
-from rindti.utils import MyArgParser
+from rindti.utils import get_module, read_config
 
 
 @pytest.fixture
 def default_config():
-    return {
-        "corruption": "mask",
-        "drug_alpha": 1,
-        "drug_dropout": 0.2,
-        "drug_frac": 0.05,
-        "drug_hidden_dim": 32,
-        "drug_node_embed": "ginconv",
-        "prot_feat_type": "label",
-        "prot_edge_type": "none",
-        "drug_feat_type": "label",
-        "drug_edge_type": "none",
-        "drug_num_heads": 4,
-        "drug_num_layers": 3,
-        "drug_pool": "gmt",
-        "drug_pretrain": False,
-        "drug_ratio": 0.25,
-        "early_stop_patience": 60,
-        "feat_method": "element_l1",
-        "lr": 0.001,
-        "mlp_dropout": 0.2,
-        "momentum": 0.3,
-        "optimiser": "adamw",
-        "prot_alpha": 1,
-        "prot_dropout": 0.2,
-        "prot_frac": 0.05,
-        "prot_hidden_dim": 32,
-        "prot_node_embed": "ginconv",
-        "prot_num_heads": 4,
-        "prot_num_layers": 3,
-        "prot_pool": "gmt",
-        "prot_pretrain": False,
-        "prot_ratio": 0.25,
-        "reduce_lr_factor": 0.1,
-        "reduce_lr_patience": 20,
-        "seed": 42,
-        "weight_decay": 0.01,
-        "weighted": 0,
-    }
+    return read_config("config/dti.yaml")
 
 
 class BaseTestModel:
-    @pytest.mark.parametrize("prot_node_embed", list(node_embedders.keys()))
-    @pytest.mark.parametrize("prot_pool", list(poolers.keys()))
+    @pytest.mark.parametrize(
+        "prot_node_embed", ["GINConvNet", "GatConvNet", "ChebConvNet", "FilmConvNet", "TransformerNet"]
+    )
+    @pytest.mark.parametrize("prot_pool", ["GMTNet", "DiffPoolNet", "MeanPool"])
     def test_no_edge_shared_step(
         self,
         prot_node_embed,
         prot_pool,
-        dti_dataset,
+        dti_datamodule,
         dti_batch,
         default_config,
     ):
-        default_config["prot_node_embed"] = prot_node_embed
-        default_config["prot_pool"] = prot_pool
-        default_config.update(dti_dataset.config)
-        default_config["prot_edge_type"] = "none"
-        default_config["drug_edge_type"] = "none"
-        model = self.model(**default_config)
-        print(default_config)
-        if default_config["prot_pool"] == "filmconv" and default_config["prot_edge_type"] == "onehot":
-            with pytest.raises(AssertionError):
-                model.shared_step(dti_batch)
+        default_config["model"]["init_args"]["prot_encoder"]["node_embed"]["class_path"] = (
+            "rindti.layers." + prot_node_embed
+        )
+        default_config["model"]["init_args"]["prot_encoder"]["pool"]["class_path"] = "rindti.layers." + prot_pool
+        dti_datamodule.update_model_args(default_config["model"]["init_args"])
+        default_config["model"]["init_args"]["prot_encoder"]["edge_type"] = "none"
+        default_config["model"]["init_args"]["drug_encoder"]["edge_type"] = "none"
+        pprint(default_config)
+        model = get_module(
+            default_config["model"],
+            _optimizer_args=default_config["optimizer"],
+            _lr_scheduler_args=default_config["lr_scheduler"],
+        )
+
         model.shared_step(dti_batch)
 
 

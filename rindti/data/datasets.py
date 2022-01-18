@@ -100,6 +100,8 @@ class DTIDataset(InMemoryDataset):
                     self.config = self._set_types(data_list[0])
                 if data_list:
                     self.process_(data_list, split)
+                else:
+                    self.process_([TwoGraphData()], split)
 
     def __repr__(self):
         proteins = set()
