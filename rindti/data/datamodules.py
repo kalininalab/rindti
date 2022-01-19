@@ -91,7 +91,7 @@ class PreTrainDataModule(BaseDataModule):
         train_frac (float, optional): Fraction of the dataset to use for training. Defaults to 0.8.
     """
 
-    def __init__(self, sampler: Optional[Sampler] = None, train_frac: float = 0.8, *args, **kwargs):
+    def __init__(self, *args, sampler: Optional[Sampler] = None, train_frac: float = 0.8, **kwargs):
         super().__init__(*args, **kwargs)
         self.sampler = sampler
         self.train_frac = train_frac

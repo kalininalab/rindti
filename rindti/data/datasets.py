@@ -154,7 +154,7 @@ class PreTrainDataset(InMemoryDataset):
         for id, x in df["data"].to_dict().items():
             self.config["max_nodes"] = max(self.config["max_nodes"], x["x"].size(0))
             x["id"] = id
-            data_list.append(x)
+            data_list.append(Data(**x))
 
         if self.pre_filter is not None:
             data_list = [data for data in data_list if self.pre_filter(data)]

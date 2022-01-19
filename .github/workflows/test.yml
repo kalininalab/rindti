@@ -17,7 +17,7 @@ jobs:
           pip install torch==1.9.0+cpu torchvision==0.10.0+cpu torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
           pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.9.0+cpu.html
           pip install torchmetrics
-          pip install pytorch_lightning
+          pip install pytorch_lightning[extra]
           pip install matplotlib
           pip install numpy
           pip install seaborn
