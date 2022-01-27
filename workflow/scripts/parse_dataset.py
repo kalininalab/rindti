@@ -1,62 +1,19 @@
 import numpy as np
 import pandas as pd
+import os
 
+inter = pd.read_csv(snakemake.input.inter, sep="\t", dtype={"Drug_ID": str, "Target_ID": str, "Y": float})
+lig = pd.read_csv(snakemake.input.lig, sep="\t", dtype=str)
+lig.drop_duplicates("Drug_ID", inplace=True)
+lig.dropna(subset=["Drug"], inplace=True)
 
-def posneg_filter(inter: pd.DataFrame) -> pd.DataFrame:
-    """Only keep drugs that have at least 1 positive and negative interaction"""
-    pos = inter[inter["Y"] == 1]["Drug_ID"].unique()
-    neg = inter[inter["Y"] == 0]["Drug_ID"].unique()
-    both = set(pos).intersection(set(neg))
-    inter = inter[inter["Drug_ID"].isin(both)]
-    return inter
-
-
-def sample(inter: pd.DataFrame, how: str = "under") -> pd.DataFrame:
-    """Sample the interactions dataset
-
-    Args:
-        inter (pd.DataFrame): whole data, has to be binary class
-        how (str, optional): over or undersample.
-        Oversample adds fake negatives, undersample removed extra positives. Defaults to "under".
-    """
-    if how == "none":
-        return inter
-    total = []
-    pos = inter[inter["Y"] == 1]
-    neg = inter[inter["Y"] == 0]
-    for prot in inter["Target_ID"].unique():
-        possample = pos[pos["Target_ID"] == prot]
-        negsample = neg[neg["Target_ID"] == prot]
-        poscount = possample.shape[0]
-        negcount = negsample.shape[0]
-        if poscount == 0:
-            continue
-        if poscount >= negcount:
-            if how == "under":
-                total.append(possample.sample(negcount))
-                total.append(negsample)
-            elif how == "over":
-                total.append(possample)
-                total.append(negsample)
-                subsample = inter[inter["Target_ID"] != prot].sample(poscount - negcount)
-                subsample["Target_ID"] = prot
-                subsample["Y"] = 0
-                total.append(subsample)
-            else:
-                raise ValueError("Unknown sampling method!")
-        else:
-            total.append(possample)
-            total.append(negsample.sample(poscount))
-    return pd.concat(total)
-
-
-if __name__ == "__main__":
-
-    from pytorch_lightning import seed_everything
-
-    seed_everything(snakemake.config["seed"])
-
-    inter = pd.read_csv(snakemake.input.inter, sep="\t")
+drug_names = lig["Drug_ID"].tolist()
+prot_names = [x[:-4] for x in os.listdir(os.path.join(snakemake.config["source"], "structures")) if x.endswith(".pdb")]
+dropable_indices = []
+for index, row in inter.iterrows():
+    if row["Drug_ID"] not in drug_names or row["Target_ID"] not in prot_names:
+        dropable_indices.append(index)
+inter.drop(dropable_indices, inplace=True)
 
     config = snakemake.config["parse_dataset"]
     # If duplicates, take median of entries
@@ -74,11 +31,25 @@ if __name__ == "__main__":
             "Can't use filtering {filter} with task {task}!".format(filter=config["filtering"], task=config["task"])
         )
 
-    if config["filtering"] == "posneg":
-        inter = posneg_filter(inter)
-    elif config["filtering"] != "all":
-        raise ValueError("No such type of filtering!")
+if config["filtering"] == "balanced":
+    num_pos = inter[inter["Y"] == 1]
+    num_neg = inter[inter["Y"] == 0]
+    vc = inter["Target_ID"].value_counts()
+    vc = pd.DataFrame(vc)
+    vc = vc.reset_index()
+    vc.columns = ["Target_ID", "count"]
+    inter = inter.merge(vc, left_on="Target_ID", right_on="Target_ID")
+    inter["weight"] = inter["count"].apply(lambda x: 1 / (x ** 2))
+    pos = inter[inter["Y"] == 1].sample(min(num_pos, num_neg), weights="weight")
+    neg = inter[inter["Y"] == 0].sample(min(num_pos, num_neg), weights="weight")
+    inter = pd.concat([pos, neg]).drop(["y", "weight", "count"], axis=1)
+elif config["filtering"] == "posneg":
+    pos = inter[inter["Y"] == 1]["Drug_ID"].unique()
+    neg = inter[inter["Y"] == 0]["Drug_ID"].unique()
+    both = set(pos).intersection(set(neg))
+    inter = inter[inter["Drug_ID"].isin(both)]
+elif config["filtering"] != "all":
+    raise ValueError("No such type of filtering!")
 
-    inter = sample(inter, how=config["sampling"])
-
-    inter.to_csv(snakemake.output.inter, index=False, sep="\t")
+inter.to_csv(snakemake.output.inter, index=False, sep="\t")
+lig.to_csv(snakemake.output.lig, index=False, sep="\t")

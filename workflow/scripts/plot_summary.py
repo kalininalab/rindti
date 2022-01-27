@@ -21,7 +21,6 @@ def calculate_nnodes_nedges(df: DataFrame) -> DataFrame:
 
 
 if __name__ == "__main__":
-
     with open(snakemake.input.pickle, "rb") as file:
         all_data = pickle.load(file)
 

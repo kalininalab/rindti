@@ -1,6 +1,7 @@
 import pickle
 
 import pandas as pd
+
 from prepare_proteins import aa_encoding
 
 with open(snakemake.input.prots, "rb") as file:

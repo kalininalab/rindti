@@ -1,8 +1,11 @@
 import pickle
 from typing import Iterable
 
+import numpy as np
 import pandas as pd
 from pandas.core.frame import DataFrame
+from pytorch_lightning import seed_everything
+
 from prepare_drugs import edge_encoding as drug_edge_encoding
 from prepare_drugs import node_encoding as drug_node_encoding
 from prepare_proteins import edge_encoding as prot_edge_encoding
@@ -11,10 +14,9 @@ from prepare_proteins import node_encoding as prot_node_encoding
 
 def process(row: pd.Series) -> dict:
     """Process each interaction, drugs encoded as graphs"""
-    split = row["split"]
     return {
         "label": row["Y"],
-        "split": split,
+        "split": row["split"],
         "prot_id": row["Target_ID"],
         "drug_id": row["Drug_ID"],
     }
@@ -41,15 +43,66 @@ def update_config(config: dict) -> dict:
     return config
 
 
-if __name__ == "__main__":
+def identify_set(df, names, col):
+    return {(name, df[df[col] == name]["split"].data()[0]) for name in names}
 
-    interactions = pd.read_csv(snakemake.input.inter, sep="\t")
+
+def negative_sampling(df: DataFrame, config: dict):
+    proteins = list(df["Target_ID"].unique())
+    drugs = list(df["Drug_ID"].unique())
+    number = config["parse_dataset"]["augment"] * len(df)
+
+    if config["split"]["method"] not in ["random", "colddrug", "coldtarget"]:
+        raise ValueError("Split method unknown!")
+
+    # assign splits aka "train", "test", "val"
+    if config["split"]["method"] == "colddrug":
+        splitting = dict([(name, df[df["Drug_ID"] == name]["split"].values[0]) for name in drugs])
+    elif config["split"]["method"] == "coldtarget":
+        splitting = dict([(name, df[df["Target_ID"] == name]["split"].values[0]) for name in proteins])
+    else:
+        splitting = lambda x: "train" if x < config["split"]["train"] else \
+            ("val" if x < config["split"]["train"] + config["split"]["val"] else "test")
+    art = pd.DataFrame(columns=df.columns)
+
+    for i in range(number):
+        if config["split"]["method"] == "coldtarget":
+            prot = proteins[i % len(proteins)]
+        else:
+            prot = proteins[np.random.randint(0, len(proteins))]
+
+        if config["split"]["method"] == "colddrug":
+            drug = drugs[i % len(drugs)]
+        else:
+            drug = drugs[np.random.randint(0, len(drugs))]
+
+        while len(df[(df["Target_ID"] == prot) & (df["Drug_ID"] == drug)]) > 0:
+            if config["split"]["method"] != "coldtarget":
+                prot = proteins[np.random.randint(0, len(proteins))]
+            if config["split"]["method"] != "colddrug":
+                drug = drugs[np.random.randint(0, len(drugs))]
+
+        if config["split"]["method"] == "colddrug":
+            split = splitting[drug]
+        elif config["split"]["method"] == "coldtarget":
+            split = splitting[prot]
+        else:
+            split = splitting(np.random.random())
+        art.loc[len(art)] = [len(df) + i, drug, prot, 0, split]
+    return art
+
+
+if __name__ == "__main__":
+    seed_everything(snakemake.config["seed"])
+    interactions = pd.read_csv(snakemake.input.inter, sep="\t",
+                               dtype={"Drug_ID": str, "Target_ID": str, "Y": int, "Split": str})
 
     with open(snakemake.input.drugs, "rb") as file:
         drugs = pickle.load(file)
 
     with open(snakemake.input.proteins, "rb") as file:
         prots = pickle.load(file)
+
     interactions = interactions[interactions["Target_ID"].isin(prots.index)]
     interactions = interactions[interactions["Drug_ID"].isin(drugs.index)]
     drug_count = interactions["Drug_ID"].value_counts()
@@ -59,6 +112,10 @@ if __name__ == "__main__":
     prots["data"] = prots["data"].apply(del_index_mapping)
     prots = prots[prots.index.isin(interactions["Target_ID"])]
     drugs = drugs[drugs.index.isin(interactions["Drug_ID"])]
+
+    if snakemake.config["parse_dataset"]["augment"] > 0:
+        interactions = pd.concat([interactions, negative_sampling(interactions, snakemake.config)], ignore_index=True)
+
     full_data = process_df(interactions)
     config = update_config(snakemake.config)
 
@@ -68,5 +125,6 @@ if __name__ == "__main__":
         "prots": prots[["data", "count"]],
         "drugs": drugs[["data", "count"]],
     }
+    
     with open(snakemake.output.combined_pickle, "wb") as file:
         pickle.dump(final_data, file, protocol=-1)

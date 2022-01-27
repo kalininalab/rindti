@@ -1,14 +1,15 @@
 import numpy as np
 import pandas as pd
+from pytorch_lightning import seed_everything
 from sklearn.model_selection import train_test_split
 
 
 def split_groups(
-    inter: pd.DataFrame,
-    col_name: str = "Target_ID",
-    bin_size: int = 10,
-    train_frac: float = 0.7,
-    val_frac: float = 0.2,
+        inter: pd.DataFrame,
+        col_name: str = "Target_ID",
+        bin_size: int = 10,
+        train_frac: float = 0.7,
+        val_frac: float = 0.2,
 ) -> pd.DataFrame:
     """Split data by protein (cold-target)
     Tries to ensure good size of all sets by sorting the proteins by number of interactions
@@ -31,7 +32,7 @@ def split_groups(
     val = []
     test = []
     for i in range(0, len(sorted_index), bin_size):
-        subset = sorted_index[i : i + bin_size]
+        subset = sorted_index[i: i + bin_size]
         train_bin = list(np.random.choice(subset, min(len(subset), train_prop), replace=False))
         train += train_bin
         subset = [x for x in subset if x not in train_bin]
@@ -69,10 +70,9 @@ def split_random(inter: pd.DataFrame, train_frac: float = 0.7, val_frac: float =
 
 
 if __name__ == "__main__":
-    from pytorch_lightning import seed_everything
-
     seed_everything(snakemake.config["seed"])
-    inter = pd.read_csv(snakemake.input.inter, sep="\t")
+    lig = pd.read_csv(snakemake.input.lig, sep="\t", dtype=str).set_index("Drug_ID")
+    inter = pd.read_csv(snakemake.input.inter, sep="\t", dtype={"Drug_ID": str, "Target_ID": str, "Y": int})
 
     if snakemake.config["split"]["method"] == "coldtarget":
         inter = split_groups(
@@ -89,7 +89,9 @@ if __name__ == "__main__":
             val_frac=snakemake.config["split"]["val"],
         )
     elif snakemake.config["split"]["method"] == "random":
-        inter = split_random(inter)
+        inter = split_random(inter, train_frac=snakemake.config["split"]["train"],
+                             val_frac=snakemake.config["split"]["val"])
     else:
         raise NotImplementedError("Unknown split type!")
+
     inter.to_csv(snakemake.output.split_data, sep="\t")

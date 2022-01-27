@@ -6,6 +6,7 @@ import pandas as pd
 import torch
 from rdkit import Chem
 from rdkit.Chem import rdmolfiles, rdmolops
+from rdkit.Chem.rdchem import ChiralType
 from torch_geometric.utils import to_undirected
 from utils import list_to_dict, onehot_encode
 
@@ -13,9 +14,47 @@ node_encoding = list_to_dict(["other", 6, 7, 8, 9, 16, 17, 35, 15, 53, 5, 11, 14
 edge_encoding = list_to_dict(["SINGLE", "DOUBLE", "AROMATIC"])
 
 
+node_encoding = {
+    "other": 0,
+    6: 1,
+    7: 2,
+    8: 3,
+    9: 4,
+    16: 5,
+    17: 6,
+    35: 7,
+    15: 8,
+    53: 9,
+    5: 10,
+    11: 11,
+    14: 12,
+    34: 13,
+}
+
+glycan_encoding = {
+    "other": [0, 0, 0],
+    6: [1, 0, 0],  # carbon
+    7: [0, 1, 0],  # nitrogen
+    8: [0, 0, 1],  # oxygen
+}
+
+chirality_encoding = {
+    ChiralType.CHI_OTHER: [0, 0, 0],
+    ChiralType.CHI_TETRAHEDRAL_CCW: [1, 1, 0],  # counterclockwise rotation of polarized light -> rotate light to the left
+    ChiralType.CHI_TETRAHEDRAL_CW: [1, 0, 1],  # clockwise rotation of polarized light -> rotate light to the right
+    ChiralType.CHI_UNSPECIFIED: [0, 0, 0],
+}
+
+
+edge_encoding = {
+    "SINGLE": 0,
+    "DOUBLE": 1,
+    "AROMATIC": 2,
+}
+
+
 class DrugEncoder:
     """Drug encoder, goes from SMILES to dictionary of torch data
-
     Args:
         node_feats (str): 'label' or 'onehot'
         edge_feats (str): 'label' or 'onehot
@@ -54,51 +93,53 @@ class DrugEncoder:
         Args:
             smiles (str): SMILES
 
-        Returns:
-            dict: dict with x, edge_index etc or np.nan for bad entries
-        """
-        mol = Chem.MolFromSmiles(smiles)
-        if not mol:  # when rdkit fails to read a molecule it returns None
+    Returns:
+        dict: dict with x, edge_index etc
+    """
+    mol = Chem.MolFromSmiles(smiles)
+    if not mol:  # when rdkit fails to read a molecule it returns None
+        print("Miss one:", smiles)
+        return np.nan
+    new_order = rdmolfiles.CanonicalRankAtoms(mol)
+    mol = rdmolops.RenumberAtoms(mol, new_order)
+    edges = []
+    edge_feats = []
+    for bond in mol.GetBonds():
+        start, end = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
+        edges.append([start, end])
+        btype = str(bond.GetBondType())
+        # If bond type is unknown, remove molecule
+        if btype not in edge_encoding.keys():
+            print("Miss two")
             return np.nan
-        new_order = rdmolfiles.CanonicalRankAtoms(mol)
-        mol = rdmolops.RenumberAtoms(mol, new_order)
-        edges = []
-        edge_feats = [] if self.edge_feats != "none" else None
-        for bond in mol.GetBonds():
-            start, end = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
-            edges.append([start, end])
-            btype = str(bond.GetBondType())
-            # If bond type is unknown, remove molecule
-            if btype not in edge_encoding.keys():
-                return np.nan
-            if self.edge_feats != "none":
-                edge_feats.append(self.encode_edge(btype))
-        if not edges:  # If no edges (bonds) were found, remove molecule
-            return np.nan
-        atom_features = []
-        for atom in mol.GetAtoms():
-            atom_num = atom.GetAtomicNum()
-            atom_features.append(self.encode_node(atom_num))
-        if len(atom_features) > self.max_num_atoms:
-            return np.nan
-        if self.node_feats == "label":
-            x = torch.tensor(atom_features, dtype=torch.long)
-        else:
-            x = torch.tensor(atom_features, dtype=torch.float32)
-        edge_index = torch.tensor(edges).t().contiguous()
-        if self.edge_feats == "onehot":
-            edge_feats = torch.tensor(edge_feats, dtype=torch.float32)
-        elif self.edge_feats == "label":
-            edge_feats = torch.tensor(edge_feats, dtype=torch.long)
-        elif self.edge_feats == "none":
-            edge_feats = None
-        else:
-            raise ValueError("Unknown edge encoding!")
-        if self.edge_feats != "none":
-            edge_index, edge_feats = to_undirected(edge_index, edge_feats)
-        else:
-            edge_index = to_undirected(edge_index)
-        return dict(x=x, edge_index=edge_index, edge_feats=edge_feats)
+        edge_feats.append(edge_encoding[btype])
+    if not edges:  # If no edges (bonds) were found, remove molecule
+        print("Miss three")
+        return np.nan
+    atom_features = []
+    for atom in mol.GetAtoms():
+        atom_num = atom.GetAtomicNum()
+        if snakemake.config["mode"] == "gpcr":
+            if atom_num not in node_encoding.keys():
+                atom_features.append(node_encoding["other"])
+            else:
+                atom_features.append(node_encoding[atom_num])
+        elif snakemake.config["mode"] in ["lectin", "one"]:
+            if atom_num not in glycan_encoding.keys():
+                cur_atom_features = list(glycan_encoding["other"])
+            else:
+                cur_atom_features = list(glycan_encoding[atom_num])
+
+            if snakemake.config["mode"] == "lectin":
+                cur_atom_features += chirality_encoding[atom.GetChiralTag()]
+
+            atom_features.append(np.array(cur_atom_features))
+
+    x = torch.tensor(atom_features, dtype=torch.long)
+    edge_index = torch.tensor(edges).t().contiguous()
+    edge_feats = torch.tensor(edge_feats, dtype=torch.long)
+    edge_index, edge_feats = to_undirected(edge_index, edge_feats)
+    return dict(x=x, edge_index=edge_index, edge_feats=edge_feats)
 
 
 if __name__ == "__main__":

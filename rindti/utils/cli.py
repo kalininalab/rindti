@@ -1,6 +1,12 @@
 from argparse import ArgumentParser, _ArgumentGroup
+import datetime
 
 import yaml
+
+
+
+def get_timestamp():
+    return str(datetime.datetime.now()).replace("-", "").replace(" ", "_").replace(":", "").split(".")[0]
 
 
 def remove_arg_prefix(prefix: str, kwargs: dict) -> dict:

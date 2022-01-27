@@ -8,9 +8,13 @@
 __*__/
 __pycache__/
 *.csv
+*.ipynb
 *.pkl
 *.pyc
 data/*
+data/
+datasets/resources/
+datasets/results/
 report/
 resources/
 results/
@@ -18,3 +22,5 @@ results/
 *Untitled*
 *build*
 *egg-info*
+tb_logs/
+lightning_logs/

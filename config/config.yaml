@@ -1,0 +1,46 @@
+# the two root directories to take the data from and to store the data in
+source: datasets/resources/oracle
+target: datasets/results/oracle
+
+# mode when embedding the drugs have to be either >gpcr< or >lectin< or >one<
+mode: lectin
+
+bsite:
+  # radius (in Angstroms) around ligands for which residues are considered to be part of the binding site
+  radius: 5
+template:
+  radius: 2
+# structures parameter decides whether to calculate `whole` structure, substructure aligned with `template` or `bsite`
+# resources/templates has to be present and contain valid structures for last 2 to work
+structures: whole
+
+# If set to true, only computes the proteins data (useful for pretraining)
+only_proteins: false
+
+# Seed for reproducibility of random processes
+seed: 42
+
+prepare_proteins:
+  # can be label or onehot
+  node_feats: label
+  # can be label, onehot or none
+  edge_feats: none
+
+split:
+  # available methods: random, coldtarget, colddrug
+  method: coldtarget
+  train: 0.7
+  val: 0.2
+  # test is created as a remainder of train and val
+
+parse_dataset:
+  # filtering can be posneg, balanced or all
+  filtering: all
+  # classification or regression
+  task: classification
+  # artificial data
+  augment: 1
+  # threshold values for classification problem
+  threshold: 1.645
+  # Whether to apply logarithm with base of 10 to values (for regression, doesn't affect threshold  )
+  log: false

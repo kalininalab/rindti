@@ -4,7 +4,8 @@ from typing import Tuple, Union
 import numpy as np
 import torch
 from pytorch_lightning import LightningModule
-from torch import LongTensor, Tensor, nn
+from torch import LongTensor, Tensor
+from torch.nn.modules.sparse import Embedding
 from torch.optim import SGD, Adam, AdamW, RMSprop
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchmetrics.functional import (
@@ -46,6 +47,7 @@ class BaseModel(LightningModule):
     """
 
     def __init__(self):
+        self.test_results = []
         super().__init__()
 
     def _get_label_embed(self, params: dict) -> nn.Embedding:
@@ -130,6 +132,9 @@ class BaseModel(LightningModule):
         _auroc = auroc(output, labels, pos_label=1)
         _mc = matthews_corrcoef(output, labels.squeeze(1), num_classes=2)
         return {
+            "pred": output.data,
+            "output": output,
+            "labels": labels,
             "acc": acc,
             "auroc": _auroc,
             "matthews": _mc,
@@ -151,7 +156,7 @@ class BaseModel(LightningModule):
 
     def test_step(self, data: TwoGraphData, data_idx: int) -> dict:
         """What to do during test step"""
-        return self.shared_step(data)
+        return self.shared_step(data), data
 
     def log_histograms(self):
         """Logs the histograms of all the available parameters"""
@@ -160,9 +165,11 @@ class BaseModel(LightningModule):
 
     def shared_epoch_end(self, outputs: dict, prefix: str, log_hparams=False):
         """Things that are the same for train, test and val"""
-        entries = outputs[0].keys()
-        metrics = {}
-        for i in entries:
+        metrics = {
+            "auroc": auroc(torch.cat([x["output"].view(-1) for x in outputs]), torch.cat([x["labels"].view(-1) for x in outputs]), pos_label=1)
+        }
+        self.logger.experiment.add_scalar(prefix + "auroc", metrics["auroc"], self.current_epoch)
+        for i in ["acc", "matthews"]:
             val = torch.stack([x[i] for x in outputs])
             val = val[~val.isnan()].mean()
             self.logger.experiment.add_scalar(prefix + i, val, self.current_epoch)
@@ -181,7 +188,10 @@ class BaseModel(LightningModule):
 
     def test_epoch_end(self, outputs: dict):
         """What to do at the end of a test epoch. Logs everything, saves hyperparameters"""
+
+        outputs, data = zip(*outputs)
         self.shared_epoch_end(outputs, "test_epoch_", log_hparams=True)
+        self.test_results = (outputs, data)
 
     def configure_optimizers(self) -> Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler._LRScheduler]:
         """Configure the optimiser and/or lr schedulers"""
@@ -202,3 +212,13 @@ class BaseModel(LightningModule):
             "monitor": self.hparams.monitor,
         }
         return [optimiser], [lr_scheduler]
+
+    @staticmethod
+    def add_arguments(parser: ArgumentParser) -> ArgumentParser:
+        """Generate arguments for this module"""
+        tmp_parser = ArgumentParser(add_help=False)
+        tmp_parser.add_argument("--drug_node_embed", type=str, default="chebconv")
+        tmp_parser.add_argument("--prot_node_embed", type=str, default="chebconv")
+        tmp_parser.add_argument("--prot_pool", type=str, default="gmt")
+        tmp_parser.add_argument("--drug_pool", type=str, default="gmt")
+        return parser
