@@ -10,7 +10,7 @@ def get_timestamp():
     return str(datetime.datetime.now()).replace("-", "").replace(" ", "_").replace(":", "").split(".")[0]
 
 
-def remove_arg_prefix(prefix: str, kwargs: Union[dict, TwoGraphData]) -> dict:
+def remove_arg_prefix(prefix: str, kwargs: Union[dict, TwoGraphData], printing=False) -> dict:
     """Removes the prefix from all the args
     Args:
         prefix (str): prefix to remove (`drug_`, `prot_` or `mlp_` usually)
@@ -20,8 +20,8 @@ def remove_arg_prefix(prefix: str, kwargs: Union[dict, TwoGraphData]) -> dict:
         dict: Sub-dict of arguments
     """
     new_kwargs = {}
-    if not isinstance(kwargs, dict):
-        kwargs = kwargs.__dict__
+    # if not isinstance(kwargs, dict):
+    #     kwargs = kwargs.__dict__
     prefix_len = len(prefix)
     for key, value in kwargs.items():
         if key.startswith(prefix):

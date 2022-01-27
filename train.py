@@ -6,7 +6,7 @@ import pandas as pd
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
-from torch_geometric.data.dataloader import DataLoader
+from torch_geometric.data import DataLoader
 
 from rindti.utils.utils import get_timestamp
 from rindti.models import ClassificationModel, NoisyNodesClassModel, NoisyNodesRegModel, RegressionModel
