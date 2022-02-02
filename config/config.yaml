@@ -28,7 +28,7 @@ prepare_proteins:
 
 split:
   # available methods: random, coldtarget, colddrug
-  method: coldtarget
+  method: colddrug
   train: 0.7
   val: 0.2
   # test is created as a remainder of train and val
@@ -39,7 +39,7 @@ parse_dataset:
   # classification or regression
   task: classification
   # artificial data
-  augment: 1
+  augment: 0
   # threshold values for classification problem
   threshold: 1.645
   # Whether to apply logarithm with base of 10 to values (for regression, doesn't affect threshold  )

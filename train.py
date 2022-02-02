@@ -29,6 +29,8 @@ def train(**kwargs):
     np.random.shuffle(tmp)
     seeds = tmp[:kwargs["runs"]]
 
+    kwargs["name"] = kwargs["name"] + "/" + kwargs["experiment"]
+
     if kwargs["transformer"] != "none":
         transform = {"gnomad": GnomadTransformer, "random": RandomTransformer}[kwargs["transformer"]].from_pickle(
             kwargs["transformer_pickle"], max_num_mut=kwargs["max_num_mut"]
@@ -54,12 +56,9 @@ def train(**kwargs):
     sub_folder = os.path.join("tb_logs", kwargs["name"])
     model_name = kwargs["model"] + ":" + kwargs["data"].split("/")[-1].split(".")[0]
     folder = os.path.join(sub_folder, model_name)
-    
-    if not os.path.exists(sub_folder):
-        os.mkdir(sub_folder)
 
     if not os.path.exists(folder):
-        os.mkdir(folder)
+        os.makedirs(folder, exist_ok=True)
 
     if len(os.listdir(folder)) == 0:
         next_version = "0"
@@ -89,7 +88,7 @@ def train(**kwargs):
             callbacks=callbacks,
             logger=logger,
             gradient_clip_val=kwargs["gradient_clip_val"],
-            deterministic=True,
+            deterministic=False,
             profiler=kwargs["profiler"],
             log_every_n_steps=30,
             max_epochs=kwargs["max_epochs"],
@@ -184,6 +183,7 @@ def parse_args(predict=False):
     parser.add_argument("--early_stop_patience", type=int, default=60, help="epochs with no improvement before stop")
     parser.add_argument("--feat_method", type=str, default="element_l1", help="How to combine embeddings")
     parser.add_argument("--name", type=str, default=None, help="Subdirectory to store the graphs in")
+    parser.add_argument("--experiment", type=str, default=None, help="Subdirectory to store the graphs in")
     parser.add_argument("--debug", action='store_true', default=False, help="Flag to turn on the debug mode")
     parser.add_argument("--runs", type=int, default=1, help="Number of runs to perform to get more reliable results")
     parser.add_argument("--checkpoint", type=str)
