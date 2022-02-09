@@ -16,3 +16,5 @@ datasets/results/
 report/
 tb_logs/
 lightning_logs/
+lectinoracle/embeds
+lectinoracle/seqs.fasta
