@@ -13,8 +13,18 @@ class RegressionModel(ClassificationModel):
 
     def forward(self, prot: dict, drug: dict) -> Tensor:
         """Forward pass of the model"""
-        prot["x"] = self.prot_feat_embed(prot["x"])
-        drug["x"] = self.drug_feat_embed(drug["x"])
+        # prot["x"] = self.prot_feat_embed(prot["x"])
+        # drug["x"] = self.drug_feat_embed(drug["x"])
+        if len(prot["x"].shape) == 1:
+            prot["x"] = self.prot_feat_embed(prot["x"])
+        else:
+            prot["x"] = prot["x"].to(torch.float)
+
+        if len(drug["x"].shape) == 1:
+            drug["x"] = self.drug_feat_embed(drug["x"])
+        else:
+            drug["x"] = drug["x"].to(torch.float)
+        
         prot["x"] = self.prot_node_embed(**prot)
         drug["x"] = self.drug_node_embed(**drug)
         prot_embed = self.prot_pool(**prot)

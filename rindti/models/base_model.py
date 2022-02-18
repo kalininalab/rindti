@@ -167,6 +167,7 @@ class BaseModel(LightningModule):
         self.shared_epoch_end(outputs, "train_epoch_")
 
     def validation_epoch_end(self, outputs: dict):
+        print(outputs)
         """What to do at the end of a validation epoch. Logs everything, saves hyperparameters"""
         self.shared_epoch_end(outputs, "val_epoch_", log_hparams=True)
 
