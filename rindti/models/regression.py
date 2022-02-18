@@ -11,6 +11,10 @@ from .classification import ClassificationModel
 class RegressionModel(ClassificationModel):
     """Model for DTI prediction as a regression problem"""
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.reg = True
+
     def forward(self, prot: dict, drug: dict) -> Tensor:
         """Forward pass of the model"""
         # prot["x"] = self.prot_feat_embed(prot["x"])

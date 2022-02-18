@@ -38,6 +38,7 @@ class BaseModel(LightningModule):
     def __init__(self):
         self.test_results = []
         super().__init__()
+        self.reg = False
 
     def _get_feat_embed(self, params: dict) -> Embedding:
         """
@@ -149,15 +150,24 @@ class BaseModel(LightningModule):
 
     def shared_epoch_end(self, outputs: dict, prefix: str, log_hparams=False):
         """Things that are the same for train, test and val"""
-        metrics = {
-            "auroc": auroc(torch.cat([x["output"].view(-1) for x in outputs]), torch.cat([x["labels"].view(-1) for x in outputs]), pos_label=1)
-        }
-        self.logger.experiment.add_scalar(prefix + "auroc", metrics["auroc"], self.current_epoch)
-        for i in ["acc", "matthews"]:
-            val = torch.stack([x[i] for x in outputs])
-            val = val[~val.isnan()].mean()
-            self.logger.experiment.add_scalar(prefix + i, val, self.current_epoch)
-            metrics[i] = val
+        if self.reg:
+            metrics = {}
+            for i in ["corr", "mae", "expvar", "loss"]:
+                val = torch.stack([x[i] for x in outputs])
+                val = val[~val.isnan()].mean()
+                self.logger.experiment.add_scalar(prefix + i, val, self.current_epoch)
+                metrics[i] = val
+        else:
+            metrics = {
+                "auroc": auroc(torch.cat([x["output"].view(-1) for x in outputs]), torch.cat([x["labels"].view(-1) for x in outputs]), pos_label=1)
+            }
+            self.logger.experiment.add_scalar(prefix + "auroc", metrics["auroc"], self.current_epoch)
+            for i in ["acc", "matthews"]:
+                val = torch.stack([x[i] for x in outputs])
+                val = val[~val.isnan()].mean()
+                self.logger.experiment.add_scalar(prefix + i, val, self.current_epoch)
+                metrics[i] = val
+
         if log_hparams:
             self.logger.log_hyperparams(self.hparams, metrics)
 
@@ -167,7 +177,6 @@ class BaseModel(LightningModule):
         self.shared_epoch_end(outputs, "train_epoch_")
 
     def validation_epoch_end(self, outputs: dict):
-        print(outputs)
         """What to do at the end of a validation epoch. Logs everything, saves hyperparameters"""
         self.shared_epoch_end(outputs, "val_epoch_", log_hparams=True)
 
