@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 import os
 
-inter = pd.read_csv(snakemake.input.inter, sep="\t", dtype={"Drug_ID": str, "Target_ID": str, "Y": float})
-lig = pd.read_csv(snakemake.input.lig, sep="\t", dtype=str)
+inter = pd.read_csv(snakemake.input.inter, sep="\t")
+lig = pd.read_csv(snakemake.input.lig, sep="\t")
 lig.drop_duplicates("Drug_ID", inplace=True)
 lig.dropna(subset=["Drug"], inplace=True)
 

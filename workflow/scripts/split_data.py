@@ -73,7 +73,7 @@ def split_random(inter: pd.DataFrame, train_frac: float = 0.7, val_frac: float =
 if __name__ == "__main__":
     seed_everything(snakemake.config["seed"])
     lig = pd.read_csv(snakemake.input.lig, sep="\t", dtype=str).set_index("Drug_ID")
-    inter = pd.read_csv(snakemake.input.inter, sep="\t", dtype={"Drug_ID": str, "Target_ID": str, "Y": int})
+    inter = pd.read_csv(snakemake.input.inter, sep="\t")
 
     if snakemake.config["split"]["method"] == "coldtarget":
         inter = split_groups(

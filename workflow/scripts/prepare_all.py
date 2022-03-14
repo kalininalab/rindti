@@ -91,14 +91,16 @@ def negative_sampling(df: DataFrame, config: dict):
             split = splitting[prot]
         else:
             split = splitting(np.random.random())
-        art.loc[len(art)] = [len(df) + i, drug, prot, 0, split]
+
+        # insert the artificial samples with value 1 as the negative class has labels above the threshold
+        art.loc[len(art)] = [len(df) + i, drug, prot, 1, split]
+
     return art
 
 
 if __name__ == "__main__":
     seed_everything(snakemake.config["seed"])
-    interactions = pd.read_csv(snakemake.input.inter, sep="\t",
-                               dtype={"Drug_ID": str, "Target_ID": str, "Y": int, "Split": str})
+    interactions = pd.read_csv(snakemake.input.inter, sep="\t")
 
     with open(snakemake.input.drugs, "rb") as file:
         drugs = pickle.load(file)

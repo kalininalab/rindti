@@ -1,12 +1,18 @@
 from pytorch_lightning import seed_everything, Trainer
-from torch_geometric.data import DataLoader
+from torch_geometric.loader import DataLoader
 
 from rindti.utils.data import Dataset
 from rindti.utils.transforms import GnomadTransformer, RandomTransformer
 from train import models, parse_args
 from rindti.utils.utils import remove_arg_prefix
 
+
 def predict(**kwargs):
+    """
+    kwargs needs:
+    seed
+
+    """
     seed_everything(kwargs["seed"])
 
     if kwargs["transformer"] != "none":
@@ -22,20 +28,11 @@ def predict(**kwargs):
 
     kwargs.update(train.config)
 
-    train_loader = DataLoader(train)
-    val_loader = DataLoader(val)
-    test_loader = DataLoader(test)
-
-    trainer = Trainer(
-        gpus=kwargs["gpus"],
-        deterministic=True,
-    )
-
     model = models[kwargs["model"]](**kwargs)
     model.load_from_checkpoint(kwargs["checkpoint"])
 
     # print("Start testing")
-    
+
     # train_result = trainer.test(model=model, dataloaders=train_loader)
     # val_result = trainer.test(model=model, dataloaders=val_loader)
     # test_result = trainer.test(model=model, dataloaders=test_loader)

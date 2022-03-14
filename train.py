@@ -1,8 +1,10 @@
 import argparse
 import os
+import pickle
 
 import numpy as np
 import pandas as pd
+import torch
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
@@ -13,6 +15,10 @@ from rindti.models import ClassificationModel, NoisyNodesClassModel, NoisyNodesR
 from rindti.utils import MyArgParser
 from rindti.utils.data import Dataset
 from rindti.utils.transforms import GnomadTransformer, RandomTransformer
+
+
+torch.multiprocessing.set_sharing_strategy('file_system')
+
 
 models = {
     "classification": ClassificationModel,
@@ -47,6 +53,12 @@ def train(**kwargs):
     print("Test Samples:", len(test))
 
     if kwargs["debug"]:
+        summing, count = 0, 0
+        for sample in train:
+            summing += sample["label"]
+            count += 1
+        print("Avg. Label:", summing.item() / count)
+
         exit(0)
 
     kwargs.update(train.config)
