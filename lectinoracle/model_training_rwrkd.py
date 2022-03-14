@@ -136,10 +136,7 @@ def train_model(model, dataloaders, criterion, optimizer,
                 val_losses.append(epoch_loss)
                 val_acc.append(epoch_acc)
                 early_stopping(epoch_loss, model)
-                try:
-                    scheduler.step(epoch_loss)
-                except:
-                    scheduler.step()
+                scheduler.step()
 
         if early_stopping.early_stop:
             print("Early stopping")
