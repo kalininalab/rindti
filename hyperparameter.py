@@ -1,6 +1,3 @@
-import warnings
-
-warnings.filterwarnings("ignore")
 import yaml
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.loggers import TensorBoardLogger
@@ -48,12 +45,12 @@ def train(kwargs: dict, datamodule: DTIDataModule):
     trainer.fit(model, datamodule)
 
 
-def list_to_tune(l):
+def list_to_tune(list_object: list):
     """Convert object to tune object if it is a list."""
-    if isinstance(l, list):
-        return tune.choice(l)
+    if isinstance(list_object, list):
+        return tune.choice(list_object)
     else:
-        return l
+        return list_object
 
 
 def tune_asha(configfile: str, num_samples: int = 1000, num_epochs: int = 100):
