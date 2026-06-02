@@ -3,7 +3,7 @@ name: rindti_clean
 channels:
   - conda-forge
   - bioconda
-  - pytorch
+  - pytorch #1
   - nvidia
 
 dependencies:
@@ -21,7 +21,7 @@ dependencies:
 
   # --- Scientific Python ---
   - numpy
-  - pandas
+  - pandas #4
   - scipy
   - scikit-learn
   - statsmodels
@@ -32,7 +32,7 @@ dependencies:
 
   # --- Chemistry / ML utils ---
   - rdkit
-  - pytorch-lightning
+  - pytorch-lightning #3
   - tensorboard
   - torchmetrics
   - xgboost
@@ -43,6 +43,6 @@ dependencies:
   - joblib
 
   - pip:
-      - torch-geometric
-      - glycowork
-      - gdown
+      - torch-geometric #2
+      - glycowork # exclude
+      - gdown # exclude
