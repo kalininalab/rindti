@@ -3,46 +3,46 @@ name: rindti_clean
 channels:
   - conda-forge
   - bioconda
-  - pytorch #1
+  - pytorch 
   - nvidia
 
 dependencies:
   # --- Core ---
-  - python=3.9
-  - snakemake
-  - snakemake-minimal
-  - pyyaml
+  - python=3.9 
+  - snakemake #done
+  - snakemake-minimal 
+  - pyyaml #already satisfied
 
   # --- PyTorch + GPU ---
-  - pytorch=2.4
-  - pytorch-cuda=12.4
-  - torchvision
-  - torchaudio
+  - pytorch=2.4 #1 done
+  - pytorch-cuda=12.4 #already satisfied
+  - torchvision #done
+  - torchaudio #done
 
   # --- Scientific Python ---
-  - numpy
+  - numpy #already satisfied
   - pandas #4
-  - scipy
-  - scikit-learn
-  - statsmodels
+  - scipy #done
+  - scikit-learn #done
+  - statsmodels #done
 
   # --- Plotting ---
-  - matplotlib
-  - seaborn
+  - matplotlib #done
+  - seaborn #already satisfied
 
   # --- Chemistry / ML utils ---
-  - rdkit
-  - pytorch-lightning #3
-  - tensorboard
-  - torchmetrics
-  - xgboost
+  - rdkit #done
+  - pytorch-lightning #3 done
+  - tensorboard #done
+  - torchmetrics #done
+  - xgboost #done
 
   # --- Utility ---
-  - requests
-  - tqdm
-  - joblib
+  - requests #already satisfied
+  - tqdm #already satisfied
+  - joblib #already satisfied
 
   - pip:
-      - torch-geometric #2
+      - torch-geometric #2 done
       - glycowork # exclude
       - gdown # exclude
