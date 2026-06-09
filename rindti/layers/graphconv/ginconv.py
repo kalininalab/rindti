@@ -25,26 +25,28 @@ class GINConvNet(BaseLayer):
         self.inp = GINConv(
             nn.Sequential(
                 nn.Linear(input_dim, hidden_dim),
+                nn.BatchNorm1d(hidden_dim),
                 nn.PReLU(),
                 nn.Linear(hidden_dim, hidden_dim),
                 nn.BatchNorm1d(hidden_dim),
             )
         )
-        mid_layers = [
+        self.mid_layers = nn.ModuleList([
             GINConv(
                 nn.Sequential(
                     nn.Linear(hidden_dim, hidden_dim),
+                    nn.BatchNorm1d(hidden_dim),
                     nn.PReLU(),
                     nn.Linear(hidden_dim, hidden_dim),
                     nn.BatchNorm1d(hidden_dim),
                 )
             )
             for _ in range(num_layers - 2)
-        ]
-        self.mid_layers = nn.ModuleList(mid_layers)
+        ])
         self.out = GINConv(
             nn.Sequential(
                 nn.Linear(hidden_dim, hidden_dim),
+                nn.BatchNorm1d(hidden_dim),
                 nn.PReLU(),
                 nn.Linear(hidden_dim, output_dim),
                 nn.BatchNorm1d(output_dim),

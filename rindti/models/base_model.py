@@ -172,7 +172,7 @@ class BaseModel(LightningModule):
             "monitor": self.hparams["model"]["monitor"],
             "scheduler": ReduceLROnPlateau(
                 optimizer,
-                verbose=True,
+                # verbose=True,
                 factor=opt_params["reduce_lr"]["factor"],
                 patience=opt_params["reduce_lr"]["patience"],
             ),
