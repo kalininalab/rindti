@@ -7,7 +7,7 @@ from .classification import ClassificationModel
 
 
 class RegressionModel(ClassificationModel):
-    """Model for DTI prediction as a reg problem."""
+    """Model for DTI prediction as a reg problem using mean square error (mse) loss function."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -15,7 +15,7 @@ encoders = {
 
 
 class ClassificationModel(BaseModel):
-    """Model for DTI prediction as a classification problem."""
+    """Model for DTI prediction as a classification problem using a Multilayer Perceptron (MLP) and a logits based binary cross-entropy (bce) loss function."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
