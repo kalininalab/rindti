@@ -95,21 +95,21 @@ class BaseModel(LightningModule):
         return drug_embed * prot_embed
 
     def training_step(self, data: TwoGraphData, data_idx: int) -> dict:
-        """What to do during training step."""
+        """What to do during training step. Inheriting sub-classes must defined the function shared_step()."""
         ss = self.shared_step(data)
         self.train_metrics.update(ss["preds"], ss["labels"])
         self.log("train_loss", ss["loss"], batch_size=self.batch_size)
         return ss
 
     def validation_step(self, data: TwoGraphData, data_idx: int) -> dict:
-        """What to do during validation step. Also logs the values for various callbacks."""
+        """What to do during validation step. Also logs the values for various callbacks. Inheriting sub-classes must defined the function shared_step()."""
         ss = self.shared_step(data)
         self.val_metrics.update(ss["preds"], ss["labels"])
         self.log("val_loss", ss["loss"], batch_size=self.batch_size)
         return ss
 
     def test_step(self, data: TwoGraphData, data_idx: int) -> dict:
-        """What to do during test step. Also logs the values for various callbacks."""
+        """What to do during test step. Also logs the values for various callbacks. Inheriting sub-classes must defined the function shared_step()."""
         ss = self.shared_step(data)
         self.test_metrics.update(ss["preds"], ss["labels"])
         self.log("test_loss", ss["loss"], batch_size=self.batch_size)
