@@ -152,14 +152,14 @@
 <div class="viewcode-block" id="RegressionModel">
 <a class="viewcode-back" href="../../../../modules/models.html#rindti.models.dti.RegressionModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RegressionModel</span><span class="p">(</span><span class="n">ClassificationModel</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Model for DTI prediction as a reg problem.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Model for DTI prediction as a reg problem. Based on the same MLP architecture of the classification class but using mean square error (mse) loss function.&quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_reg_metrics</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">shared_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">TwoGraphData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The prediction labels are normalized between 0 and 1 using the sigmoid function as this prevents domination of large values while computing the mean square error loss function.&quot;&quot;&quot;</span>
         <span class="n">prot</span> <span class="o">=</span> <span class="n">remove_arg_prefix</span><span class="p">(</span><span class="s2">&quot;prot_&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
         <span class="n">drug</span> <span class="o">=</span> <span class="n">remove_arg_prefix</span><span class="p">(</span><span class="s2">&quot;drug_&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
         <span class="n">fwd_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">prot</span><span class="p">,</span> <span class="n">drug</span><span class="p">)</span>
