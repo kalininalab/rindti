@@ -150,7 +150,8 @@
 <div class="viewcode-block" id="Max">
 <a class="viewcode-back" href="../../../../../modules/models.html#rindti.models.dti.baseline.Max">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Max</span><span class="p">(</span><span class="n">BaseBaseline</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Take the most popular label.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Take the most popular label. If the prob flag is false (binary output), then the prediction is the mean of the labels (“Y”).  Otherwise, it outputs a random value from a normal distribution centered at the mean and scaled up to the standard deviation of the labels (“Y”). </span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Max.fit">
 <a class="viewcode-back" href="../../../../../modules/models.html#rindti.models.dti.baseline.Max.fit">[docs]</a>
