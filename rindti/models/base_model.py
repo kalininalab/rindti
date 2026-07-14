@@ -19,7 +19,7 @@ from ..data import TwoGraphData
 
 
 class BaseModel(LightningModule):
-    """BaseModel is an abstract base class built on PyTorch Lightning's LightningModule. Available classification metrics: Accuracy, AUROC, Matthews Correlation Coefficient. Available regression metrics: MAE, MSE, Explained Variance. Available drug"""
+    """BaseModel is an abstract base class built on PyTorch Lightning's LightningModule. Its constructor accepts variable number of keyword arguments, which are stored in self.hparams. The base class has helper methods available for combining protein-drug representations, setting classification and regression metrics. Available methods for concatenating drug and protein representations: Concatenation, L2 distance, L1 distance, Multiplication. Available classification metrics: Accuracy, AUROC, Matthews Correlation Coefficient. Available regression metrics: MAE, MSE, Explained Variance. Inheriting sub-classes must define the function shared_step()."""
 
     def __init__(self, **kwargs):
         super().__init__()
@@ -95,21 +95,21 @@ class BaseModel(LightningModule):
         return drug_embed * prot_embed
 
     def training_step(self, data: TwoGraphData, data_idx: int) -> dict:
-        """What to do during training step. Inheriting sub-classes must defined the function shared_step()."""
+        """What to do during training step."""
         ss = self.shared_step(data)
         self.train_metrics.update(ss["preds"], ss["labels"])
         self.log("train_loss", ss["loss"], batch_size=self.batch_size)
         return ss
 
     def validation_step(self, data: TwoGraphData, data_idx: int) -> dict:
-        """What to do during validation step. Also logs the values for various callbacks. Inheriting sub-classes must defined the function shared_step()."""
+        """What to do during validation step. Also logs the values for various callbacks."""
         ss = self.shared_step(data)
         self.val_metrics.update(ss["preds"], ss["labels"])
         self.log("val_loss", ss["loss"], batch_size=self.batch_size)
         return ss
 
     def test_step(self, data: TwoGraphData, data_idx: int) -> dict:
-        """What to do during test step. Also logs the values for various callbacks. Inheriting sub-classes must defined the function shared_step()."""
+        """What to do during test step. Also logs the values for various callbacks."""
         ss = self.shared_step(data)
         self.test_metrics.update(ss["preds"], ss["labels"])
         self.log("test_loss", ss["loss"], batch_size=self.batch_size)
