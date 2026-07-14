@@ -1,5 +1,4 @@
-
-,import numpy as np
+import numpy as np
 import pandas as pd
 
 from .base_baseline import BaseBaseline
