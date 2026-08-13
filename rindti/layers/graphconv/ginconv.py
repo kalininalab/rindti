@@ -9,7 +9,7 @@ from ..base_layer import BaseLayer
 
 
 class GINConvNet(BaseLayer):
-    """Graph Isomorphism Network.
+    """Graph Isomorphism Network: Standard Graph Convolutional Networks fail to distinguish between different graph layouts because distinct neighborhoods can easily produce identical averages or means. GIN solves this structural blindness by replacing averaging with summing the raw neighbor messages alongside the target node's own features. In the case of predicting DTI, two proteins may have similar residue counts but different interaction topology which can be detected using GIN, that is, protein function depends heavily on network topology.
 
     Refer to :class:`torch_geometric.nn.conv.GINConv` for more details.
 
