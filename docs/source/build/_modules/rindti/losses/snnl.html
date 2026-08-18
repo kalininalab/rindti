@@ -152,9 +152,10 @@
 <div class="viewcode-block" id="SoftNearestNeighborLoss">
 <a class="viewcode-back" href="../../../modules/losses.html#rindti.losses.snnl.SoftNearestNeighborLoss">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SoftNearestNeighborLoss</span><span class="p">(</span><span class="n">LightningModule</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Soft Nearest Neighbor Loss.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Soft Nearest Neighbor Loss: Instead of using hard margins, model the probability of the embedded neighbors belonging to the same class, without explicitly predicting those labels. Temperature parameter determines the shape of the resulting cluster. High temperature -&gt; Everyone influences everyone -&gt; Smoother clusters. Low temperature -&gt; Only very close neighbors matter -&gt; Sharper clusters.</span>
+<span class="sd">  </span>
 
-<span class="sd">    `[paper] &lt;https://arxiv.org/pdf/1902.01889.pdf&gt;_`</span>
+<span class="sd">    `[paper] &lt;https://arxiv.org/pdf/1902.01889.pdf&gt;`_</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        temperature (float, optional): Temperature. Defaults to 1.</span>

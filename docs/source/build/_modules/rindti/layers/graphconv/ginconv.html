@@ -154,7 +154,7 @@
 <div class="viewcode-block" id="GINConvNet">
 <a class="viewcode-back" href="../../../../modules/layers.html#rindti.layers.graphconv.GINConvNet">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GINConvNet</span><span class="p">(</span><span class="n">BaseLayer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Graph Isomorphism Network.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Graph Isomorphism Network: Standard Graph Convolutional Networks fail to distinguish between different graph layouts because distinct neighborhoods can easily produce identical averages or means. GIN solves this structural blindness by replacing averaging with summing the raw neighbor messages alongside the target node&#39;s own features. In the case of predicting DTI, two proteins may have similar residue counts but different interaction topology which can be detected using GIN, that is, protein function depends heavily on network topology.</span>
 
 <span class="sd">    Refer to :class:`torch_geometric.nn.conv.GINConv` for more details.</span>
 

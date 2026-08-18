@@ -154,7 +154,7 @@
 <div class="viewcode-block" id="GatConvNet">
 <a class="viewcode-back" href="../../../../modules/layers.html#rindti.layers.graphconv.GatConvNet">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GatConvNet</span><span class="p">(</span><span class="n">BaseLayer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Graph Attention Layer.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Graph Attention Layer: Uses multi-head attention to compute a unique, dynamic importance weight for each connection. Instead of simply averaging neighbor features, a target node learns to weigh its neighbors differently. A use case would be to identify binding pocket residues, as binding often depends on a small subset of residues.</span>
 
 <span class="sd">    Refer to :class:`torch_geometric.nn.conv.GATConv` for more details.</span>
 
