@@ -149,7 +149,7 @@
 <div class="viewcode-block" id="TwoGraphData">
 <a class="viewcode-back" href="../../../modules/data.html#rindti.data.TwoGraphData">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TwoGraphData</span><span class="p">(</span><span class="n">Data</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subclass of torch_geometric.data.Data for protein and drug data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subclass of torch_geometric.data.Data for protein and drug data. The helper function __inc__ is responsible for correctly incrementing drug and target protein graph edge indices. The helper methods n_nodes(prefix) and n_edges(prefix) provide a convenient interface for querying graph sizes.&quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>

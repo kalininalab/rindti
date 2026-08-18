@@ -164,7 +164,7 @@
 <div class="viewcode-block" id="GraphEncoder">
 <a class="viewcode-back" href="../../../../modules/layers.html#rindti.layers.encoder.GraphEncoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GraphEncoder</span><span class="p">(</span><span class="n">LightningModule</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Encoder for graphs.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Encoder for graphs that connects GNN and pooling layers.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        return_nodes (bool, optional): Return node embeddings as well. Defaults to False.</span>
@@ -218,8 +218,7 @@
         <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">Data</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Encode a graph.</span>
-
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Encode a graph by converting raw node data into initial vectors, updating them using a Graph Neural Network (GNN) and aggregating them into a single vector representation for the entire graph.</span>
 <span class="sd">        Args:</span>
 <span class="sd">            data (Union[dict, Data]): Graph to encode. Must contain the following keys:</span>
 <span class="sd">                - x: Node features</span>

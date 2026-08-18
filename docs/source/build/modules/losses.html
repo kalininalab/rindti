@@ -148,17 +148,17 @@
 <nav class="contents local" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#generalized-lifted-structure-loss" id="id1">Generalized Lifted Structure Loss</a></p></li>
-<li><p><a class="reference internal" href="#soft-nearest-neighbor-loss" id="id2">Soft Nearest Neighbor Loss</a></p></li>
+<li><p><a class="reference internal" href="#generalized-lifted-structure-loss" id="id2">Generalized Lifted Structure Loss</a></p></li>
+<li><p><a class="reference internal" href="#soft-nearest-neighbor-loss" id="id3">Soft Nearest Neighbor Loss</a></p></li>
 </ul>
 </nav>
 <section id="generalized-lifted-structure-loss">
-<h2><a class="toc-backref" href="#id1" role="doc-backlink">Generalized Lifted Structure Loss</a><a class="headerlink" href="#generalized-lifted-structure-loss" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Generalized Lifted Structure Loss</a><a class="headerlink" href="#generalized-lifted-structure-loss" title="Link to this heading">¶</a></h2>
 <dl class="py class" id="module-rindti.losses.lifted_structure">
 <dt class="sig sig-object py" id="rindti.losses.lifted_structure.GeneralisedLiftedStructureLoss">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">GeneralisedLiftedStructureLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos_margin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neg_margin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/rindti/losses/lifted_structure.html#GeneralisedLiftedStructureLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#rindti.losses.lifted_structure.GeneralisedLiftedStructureLoss" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LightningModule</span></code></p>
-<p>Gerneralised lifted structure loss.</p>
+<p>Gerneralised lifted structure loss: Explicitly pushes positive embedding pair values together and negative embedding pair values apart using all pairwise distances within a batch. The positive and negative distances are modeled by margins. It can be used to form a cluster in embedding space for proteins from the same family.</p>
 <p><a class="reference external" href="https://arxiv.org/abs/1511.06452">[paper]</a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -189,13 +189,13 @@
 
 </section>
 <section id="soft-nearest-neighbor-loss">
-<h2><a class="toc-backref" href="#id2" role="doc-backlink">Soft Nearest Neighbor Loss</a><a class="headerlink" href="#soft-nearest-neighbor-loss" title="Link to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Soft Nearest Neighbor Loss</a><a class="headerlink" href="#soft-nearest-neighbor-loss" title="Link to this heading">¶</a></h2>
 <dl class="py class" id="module-rindti.losses.snnl">
 <dt class="sig sig-object py" id="rindti.losses.snnl.SoftNearestNeighborLoss">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SoftNearestNeighborLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/rindti/losses/snnl.html#SoftNearestNeighborLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#rindti.losses.snnl.SoftNearestNeighborLoss" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LightningModule</span></code></p>
-<p>Soft Nearest Neighbor Loss.</p>
-<p><cite>[paper] &lt;https://arxiv.org/pdf/1902.01889.pdf&gt;_</cite></p>
+<p>Soft Nearest Neighbor Loss: Instead of using hard margins, model the probability of the embedded neighbors belonging to the same class, without explicitly predicting those labels. Temperature parameter determines the shape of the resulting cluster. High temperature -&gt; Everyone influences everyone -&gt; Smoother clusters. Low temperature -&gt; Only very close neighbors matter -&gt; Sharper clusters.</p>
+<p><a class="reference external" href="https://arxiv.org/pdf/1902.01889.pdf">[paper]</a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
