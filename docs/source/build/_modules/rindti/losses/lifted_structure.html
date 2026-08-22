@@ -151,7 +151,7 @@
 <div class="viewcode-block" id="GeneralisedLiftedStructureLoss">
 <a class="viewcode-back" href="../../../modules/losses.html#rindti.losses.lifted_structure.GeneralisedLiftedStructureLoss">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GeneralisedLiftedStructureLoss</span><span class="p">(</span><span class="n">LightningModule</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Gerneralised lifted structure loss.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Gerneralised lifted structure loss: Explicitly pushes positive embedding pair values together and negative embedding pair values apart using all pairwise distances within a batch. The positive and negative distances are modeled by margins. It can be used to form a cluster in embedding space for proteins from the same family.</span>
 
 <span class="sd">    `[paper] &lt;https://arxiv.org/abs/1511.06452&gt;`_</span>
 

@@ -154,9 +154,9 @@
 <div class="viewcode-block" id="FilmConvNet">
 <a class="viewcode-back" href="../../../../modules/layers.html#rindti.layers.graphconv.FilmConvNet">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FilmConvNet</span><span class="p">(</span><span class="n">BaseLayer</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;FiLM Convolution.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;FiLM Convolution: Alters the feature map of a neighbor&#39;s message using an affine transformation. Instead of applying the same static weight matrix to all neighbors, it uses a hypernetwork to dynamically generate custom weights for each connection. In context of DTI, it can be used, for example, to weigh importance of a particular amino acid interaction.</span>
 
-<span class="sd">    Refer to :class:`torch_geometric.nn.conv.FiLMConv` for more details.</span>
+<span class="sd">    Refer to :class:`torch_geometric.nn.conv.FiLMConv` for more details. </span>
 
 
 <span class="sd">    Args:</span>

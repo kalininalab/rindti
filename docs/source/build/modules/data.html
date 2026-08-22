@@ -152,7 +152,7 @@
 <dl class="py class" id="module-rindti.data">
 <dt class="sig sig-object py" id="rindti.data.TwoGraphData">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TwoGraphData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/rindti/data/data.html#TwoGraphData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#rindti.data.TwoGraphData" title="Link to this definition">¶</a></dt>
-<dd><p>Subclass of torch_geometric.data.Data for protein and drug data.</p>
+<dd><p>Subclass of torch_geometric.data.Data for protein and drug data. The helper function __inc__ is responsible for correctly incrementing drug and target protein graph edge indices. The helper methods n_nodes(prefix) and n_edges(prefix) provide a convenient interface for querying graph sizes.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="rindti.data.TwoGraphData.n_nodes">
 <span class="sig-name descname"><span class="pre">n_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></span><a class="reference internal" href="../_modules/rindti/data/data.html#TwoGraphData.n_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#rindti.data.TwoGraphData.n_nodes" title="Link to this definition">¶</a></dt>
@@ -174,7 +174,7 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="rindti.data.DTIDataModule.setup">
 <span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/rindti/data/datamodules.html#DTIDataModule.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#rindti.data.DTIDataModule.setup" title="Link to this definition">¶</a></dt>
-<dd><p>Load the individual datasets</p>
+<dd><p>Load the individual datasets for training, validation and testing, based on their labels. The individual datasets are shuffled independently, to prevent learning artifacts due to data ordering.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -220,7 +220,7 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="rindti.data.PreTrainDataModule.setup">
 <span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/rindti/data/datamodules.html#PreTrainDataModule.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#rindti.data.PreTrainDataModule.setup" title="Link to this definition">¶</a></dt>
-<dd><p>Load the individual datasets.</p>
+<dd><p>Load the individual datasets and split them with proportions of 70%, 20%, and 10% for train/validation/test.</p>
 </dd></dl>
 
 <dl class="py method">
