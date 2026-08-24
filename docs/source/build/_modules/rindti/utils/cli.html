@@ -43,6 +43,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../notes/installation.html#conda-installation">Conda installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../notes/installation.html#manual-installation">Manual installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../notes/installation.html#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../notes/installation.html#docker-installation">Docker installation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notes/quick_start.html">Quick start guide</a><ul>
@@ -53,7 +54,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notes/snakemake.html">Snakemake workflows</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../notes/snakemake.html#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../notes/snakemake.html#confuguration">Confuguration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../notes/snakemake.html#configuration">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../notes/snakemake.html#file-naming">File naming</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../notes/snakemake.html#file-structure">File structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../notes/snakemake.html#dti-dataset-creation">DTI dataset creation</a></li>
@@ -152,7 +153,7 @@
 <div class="viewcode-block" id="remove_arg_prefix">
 <a class="viewcode-back" href="../../../modules/utils.html#rindti.utils.remove_arg_prefix">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">remove_arg_prefix</span><span class="p">(</span><span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Removes the prefix from all the args.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Removes the prefix from all the args. See :ref:`rindti.data. TwoGraphData` for more information.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        prefix (str): prefix to remove (`drug_`, `prot_` or `mlp_` usually)</span>
@@ -176,7 +177,7 @@
 <div class="viewcode-block" id="add_arg_prefix">
 <a class="viewcode-back" href="../../../modules/utils.html#rindti.utils.add_arg_prefix">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">add_arg_prefix</span><span class="p">(</span><span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds the prefix to all the args. Removes None values and &quot;index_mapping&quot;.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds the prefix to all the args. Removes None values and &quot;index_mapping&quot;. See :ref:`rindti.data. TwoGraphData` for more information.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        prefix (str): prefix to add (`drug_`, `prot_` or `mlp_` usually)</span>
@@ -216,7 +217,7 @@
 <div class="viewcode-block" id="IterDict">
 <a class="viewcode-back" href="../../../modules/utils.html#rindti.utils.IterDict">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IterDict</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a list of dicts with all possible combinations of hyperparameters.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;IterDict is used for hyperparameter search. Returns a list of dicts with all possible combinations of hyperparameters.&quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_path</span> <span class="o">=</span> <span class="p">[]</span>
