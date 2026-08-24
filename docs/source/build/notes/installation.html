@@ -46,6 +46,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#conda-installation">Conda installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#manual-installation">Manual installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-installation">Docker installation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick start guide</a><ul>
@@ -56,7 +57,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="snakemake.html">Snakemake workflows</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="snakemake.html#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="snakemake.html#confuguration">Confuguration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="snakemake.html#configuration">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="snakemake.html#file-naming">File naming</a></li>
 <li class="toctree-l2"><a class="reference internal" href="snakemake.html#file-structure">File structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="snakemake.html#dti-dataset-creation">DTI dataset creation</a></li>
@@ -175,6 +176,62 @@
 <p>In order to asses whether the installation of the packages was succesfull, please run <code class="docutils literal notranslate"><span class="pre">pytest</span></code> in the root directory.
 If the packages were not installed into path using pip, please use <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pytest</span></code> instead.
 Furthermore, if your device has no GPU support, please use <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">-m</span> <span class="pre">&quot;not</span> <span class="pre">gpu&quot;</span></code></p>
+</section>
+<section id="docker-installation">
+<h2>Docker installation<a class="headerlink" href="#docker-installation" title="Link to this heading">¶</a></h2>
+<p>A pre-built Docker image containing RINDTI and its Python dependencies is available from Docker Hub:</p>
+<p><a class="reference external" href="https://hub.docker.com/r/atsh00001/rindti/tags">RINDTI Docker images</a></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">cuda128</span></code> tag is intended for GPU systems whose NVIDIA driver supports CUDA 12.8. Before using the image, verify that Docker is installed:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">docker --version</span>
+</pre></div>
+</div>
+<p>Pull the image from Docker Hub:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">docker pull atsh00001/rindti:cuda128</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">latest</span></code> tag may also be used:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">docker pull atsh00001/rindti:latest</span>
+</pre></div>
+</div>
+<p>However, explicitly selecting <code class="docutils literal notranslate"><span class="pre">cuda128</span></code> is recommended for reproducible GPU environments.</p>
+<section id="testing-the-docker-image">
+<h3>Testing the Docker image<a class="headerlink" href="#testing-the-docker-image" title="Link to this heading">¶</a></h3>
+<p>Verify that PyTorch and PyTorch Lightning can be imported:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">docker run --rm -it atsh00001/rindti:cuda128 \</span>
+<span class="go">    python -c &quot;import torch; import pytorch_lightning; print(&#39;ok&#39;)&quot;</span>
+</pre></div>
+</div>
+<p>The expected output is:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>ok
+</pre></div>
+</div>
+<p>On a machine with the NVIDIA Container Toolkit and a compatible GPU, verify that CUDA is available inside the container:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">docker run --rm --gpus all -it atsh00001/rindti:cuda128 \</span>
+<span class="go">    python -c &quot;import torch; print(torch.__version__); print(torch.version.cuda); print(torch.cuda.is_available())&quot;</span>
+</pre></div>
+</div>
+<p>For the <code class="docutils literal notranslate"><span class="pre">cuda128</span></code> image, the expected CUDA version and availability are:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>12.8
+True
+</pre></div>
+</div>
+</section>
+<section id="opening-an-interactive-shell">
+<h3>Opening an interactive shell<a class="headerlink" href="#opening-an-interactive-shell" title="Link to this heading">¶</a></h3>
+<p>To inspect the image or run commands interactively:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">docker run --rm -it atsh00001/rindti:cuda128 /bin/bash</span>
+</pre></div>
+</div>
+<p>The RINDTI source code is installed under:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>/opt/rindti
+</pre></div>
+</div>
+<p>Inside the container, the training entry point can be inspected with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cd /opt/rindti</span>
+<span class="go">python train.py --help</span>
+</pre></div>
+</div>
+</section>
 </section>
 </section>
 
