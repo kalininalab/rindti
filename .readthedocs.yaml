@@ -1,9 +1,46 @@
+# .readthedocs.yaml
+# Read the Docs configuration file
+# Documentation:
+# https://docs.readthedocs.com/platform/stable/config-file/v2.html
+
 version: 2
 
 build:
-  os: "ubuntu-20.04"
-  tools:
-    python: "mambaforge-4.10"
+  os: ubuntu-24.04
 
-conda:
-  environment: workflow/envs/main.yaml
+  tools:
+    python: "3.12"
+
+  jobs:
+    post_create_environment:
+      # Upgrade installation tooling first.
+      - python -m pip install --upgrade pip setuptools wheel
+
+      # Install the CPU-only PyTorch stack.
+      # CUDA packages are unnecessary on Read the Docs and make the
+      # environment substantially larger.
+      - python -m pip install --no-cache-dir torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 --index-url https://download.pytorch.org/whl/cpu
+
+    post_install:
+      # Print versions to make failed builds easier to diagnose.
+      - python --version
+      - python -c "import torch; print('PyTorch:', torch.__version__); print('CUDA available:', torch.cuda.is_available())"
+      - python -c "import sphinx; print('Sphinx:', sphinx.__version__)"
+      - python -c "import rindti; print('RINDTI:', rindti.__version__)"
+
+sphinx:
+  configuration: docs/source/conf.py
+
+  # Keep warnings visible in build logs, but do not fail the entire
+  # deployment while old references and intersphinx links are cleaned up.
+  fail_on_warning: false
+
+python:
+  install:
+    # Documentation-specific dependencies, including a controlled
+    # Sphinx version.
+    - requirements: docs/requirements.txt
+
+    # Install the project itself so autodoc can import rindti.
+    - method: pip
+      path: .
