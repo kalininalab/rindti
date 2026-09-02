@@ -1,3 +1,5 @@
+from argparse import ArgumentParser
+
 from torch.functional import Tensor
 from torch.nn import ModuleList
 from torch_geometric.nn import FiLMConv
@@ -7,9 +9,9 @@ from ..base_layer import BaseLayer
 
 
 class FilmConvNet(BaseLayer):
-    r"""FiLM Convolution.
+    r"""FiLM Convolution: Alters the feature map of a neighbor's message using an affine transformation. Instead of applying the same static weight matrix to all neighbors, it uses a hypernetwork to dynamically generate custom weights for each connection. In context of DTI, it can be used, for example, to weigh importance of a particular amino acid interaction.
 
-    Refer to :class:`torch_geometric.nn.conv.FiLMConv` for more details.
+    Refer to :class:`torch_geometric.nn.conv.FiLMConv` for more details. 
 
 
     Args:
@@ -34,17 +36,12 @@ class FilmConvNet(BaseLayer):
             edge_dim = 1
         self.edge_dim = edge_dim
         self.inp = FiLMConv(input_dim, hidden_dim, num_relations=edge_dim)
-        mid_layers = [
-            FiLMConv(hidden_dim, hidden_dim, num_relations=edge_dim)
-            for _ in range(num_layers - 2)
-        ]
+        mid_layers = [FiLMConv(hidden_dim, hidden_dim, num_relations=edge_dim) for _ in range(num_layers - 2)]
         self.mid_layers = ModuleList(mid_layers)
 
         self.out = FiLMConv(hidden_dim, output_dim, num_relations=edge_dim)
 
-    def forward(
-        self, x: Tensor, edge_index: Adj, edge_feats: Tensor = None, **kwargs
-    ) -> Tensor:
+    def forward(self, x: Tensor, edge_index: Adj, edge_feats: Tensor = None, **kwargs) -> Tensor:
         """"""
         if self.edge_dim <= 1:
             edge_feats = None

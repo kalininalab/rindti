@@ -24,37 +24,38 @@ def split_groups(
     Returns:
         pd.DataFrame: DataFrame with a new 'split' column
     """
-    sorted_index = [x for x in inter[col_name].value_counts().index]
-    train_prop = int(bin_size * train_frac)
-    val_prop = int(bin_size * val_frac)
-    train = []
-    val = []
-    test = []
-    for i in range(0, len(sorted_index), bin_size):
-        subset = sorted_index[i : i + bin_size]
-        train_bin = list(
-            np.random.choice(subset, min(len(subset), train_prop), replace=False)
-        )
-        train += train_bin
-        subset = [x for x in subset if x not in train_bin]
-        val_bin = list(
-            np.random.choice(subset, min(len(subset), val_prop), replace=False)
-        )
-        val += val_bin
-        subset = [x for x in subset if x not in val_bin]
-        test += subset
-    train_idx = inter[inter[col_name].isin(train)].index
-    val_idx = inter[inter[col_name].isin(val)].index
-    test_idx = inter[inter[col_name].isin(test)].index
-    inter.loc[train_idx, "split"] = "train"
-    inter.loc[val_idx, "split"] = "val"
-    inter.loc[test_idx, "split"] = "test"
+    # sorted_index = [x for x in inter[col_name].value_counts().index]
+    # train_prop = int(bin_size * train_frac)
+    # val_prop = int(bin_size * val_frac)
+    # train = []
+    # val = []
+    # test = []
+    # for i in range(0, len(sorted_index), bin_size):
+    #     subset = sorted_index[i : i + bin_size]
+    #     train_bin = list(np.random.choice(subset, min(len(subset), train_prop), replace=False))
+    #     train += train_bin
+    #     subset = [x for x in subset if x not in train_bin]
+    #     val_bin = list(np.random.choice(subset, min(len(subset), val_prop), replace=False))
+    #     val += val_bin
+    #     subset = [x for x in subset if x not in val_bin]
+    #     test += subset
+    # train_idx = inter[inter[col_name].isin(train)].index
+    # val_idx = inter[inter[col_name].isin(val)].index
+    # test_idx = inter[inter[col_name].isin(test)].index
+    # inter.loc[train_idx, "split"] = "train"
+    # inter.loc[val_idx, "split"] = "val"
+    # inter.loc[test_idx, "split"] = "test"
+    # return inter
+    print(snakemake.config['source'])
+    print()
+    print(snakemake.config['split_data']['split_loc'])
+
+    split_loc = snakemake.config['source'] + '/tables/' + snakemake.config['split_data']['split_loc']
+    inter = pd.read_csv(split_loc, sep = '\t')
     return inter
 
 
-def split_random(
-    inter: pd.DataFrame, train_frac: float = 0.7, val_frac: float = 0.2
-) -> pd.DataFrame:
+def split_random(inter: pd.DataFrame, train_frac: float = 0.7, val_frac: float = 0.2) -> pd.DataFrame:
     """Split the dataset in a completely random fashion
 
     Args:
@@ -82,7 +83,7 @@ if __name__ == "__main__":
     fracs = {"train_frac": snakemake.params.train, "val_frac": snakemake.params.val}
 
     if snakemake.params.method == "target":
-        inter = split_groups(inter, col_name="Target_ID", **fracs)
+        inter = split_groups(inter, col_name="Target_ID",  **fracs)
     elif snakemake.params.method == "drug":
         inter = split_groups(inter, col_name="Drug_ID", **fracs)
     elif snakemake.params.method == "random":

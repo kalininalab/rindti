@@ -7,7 +7,7 @@ import yaml
 
 
 def remove_arg_prefix(prefix: str, kwargs: dict) -> dict:
-    """Removes the prefix from all the args.
+    """Removes the prefix from all the args. See :ref:`rindti.data. TwoGraphData` for more information.
 
     Args:
         prefix (str): prefix to remove (`drug_`, `prot_` or `mlp_` usually)
@@ -28,7 +28,7 @@ def remove_arg_prefix(prefix: str, kwargs: dict) -> dict:
 
 
 def add_arg_prefix(prefix: str, kwargs: dict) -> dict:
-    """Adds the prefix to all the args. Removes None values and "index_mapping".
+    """Adds the prefix to all the args. Removes None values and "index_mapping". See :ref:`rindti.data. TwoGraphData` for more information.
 
     Args:
         prefix (str): prefix to add (`drug_`, `prot_` or `mlp_` usually)
@@ -37,11 +37,7 @@ def add_arg_prefix(prefix: str, kwargs: dict) -> dict:
     Returns:
         dict: Sub-dict of arguments
     """
-    return {
-        prefix + k: v
-        for (k, v) in kwargs.items()
-        if k != "index_mapping" and v is not None
-    }
+    return {prefix + k: v for (k, v) in kwargs.items() if k != "index_mapping" and v is not None}
 
 
 def read_config(filename: str) -> dict:
@@ -63,7 +59,7 @@ def _tree():
 
 
 class IterDict:
-    """Returns a list of dicts with all possible combinations of hyperparameters."""
+    """IterDict is used for hyperparameter search. Returns a list of dicts with all possible combinations of hyperparameters."""
 
     def __init__(self):
         self.current_path = []

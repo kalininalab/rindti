@@ -38,9 +38,7 @@ def sample(inter: pd.DataFrame, how: str = "under") -> pd.DataFrame:
             elif how == "over":
                 total.append(possample)
                 total.append(negsample)
-                subsample = inter[inter["Target_ID"] != prot].sample(
-                    poscount - negcount
-                )
+                subsample = inter[inter["Target_ID"] != prot].sample(poscount - negcount)
                 subsample["Target_ID"] = prot
                 subsample["Y"] = 0
                 total.append(subsample)
@@ -53,6 +51,7 @@ def sample(inter: pd.DataFrame, how: str = "under") -> pd.DataFrame:
 
 
 if __name__ == "__main__":
+
     from pytorch_lightning import seed_everything
 
     seed_everything(snakemake.config["seed"])
@@ -61,7 +60,10 @@ if __name__ == "__main__":
 
     config = snakemake.config["parse_dataset"]
     # If duplicates, take median of entries
-    inter = inter.groupby(["Drug_ID", "Target_ID"]).agg("median").reset_index()
+    # PREVIOUSLY: inter = inter.groupby(["Drug_ID", "Target_ID"]).agg("median").reset_index()
+    # change: calculate median only from the "Y" column
+    inter = inter.groupby(["Drug_ID", "Target_ID"], as_index=False)["Y"].median()
+
     if config["task"] == "class":
         inter["Y"] = inter["Y"].apply(lambda x: int(x < config["threshold"]))
     elif config["task"] == "reg":
@@ -70,15 +72,9 @@ if __name__ == "__main__":
     else:
         raise ValueError("Unknown task!")
 
-    if (
-        config["filtering"] != "all"
-        and config["sampling"] != "none"
-        and config["task"] == "reg"
-    ):
+    if config["filtering"] != "all" and config["sampling"] != "none" and config["task"] == "reg":
         raise ValueError(
-            "Can't use filtering {filter} with task {task}!".format(
-                filter=config["filtering"], task=config["task"]
-            )
+            "Can't use filtering {filter} with task {task}!".format(filter=config["filtering"], task=config["task"])
         )
 
     if config["filtering"] == "posneg":

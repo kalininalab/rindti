@@ -1,3 +1,5 @@
+from argparse import ArgumentParser
+
 from torch.functional import Tensor
 from torch.nn import Embedding
 from torch_geometric.nn import PNAConv
@@ -7,7 +9,7 @@ from ..base_layer import BaseLayer
 
 
 class PNAConvNet(BaseLayer):
-    r"""Principal Neighborhood Aggregation.
+    r"""Principal Neighborhood Aggregation: Utilizes multiple aggregation functions and degree-scalers to better handle continuous features and complex, real-world data. This can be used to simultaneously model different neighborhood statistics that capture different biological signals.
 
     Refer to :class:`torch_geometric.nn.conv.PNAConv` for more details.
 
@@ -20,13 +22,7 @@ class PNAConvNet(BaseLayer):
     """
 
     def __init__(
-        self,
-        input_dim: int,
-        output_dim: int,
-        hidden_dim: int = 32,
-        edge_dim: int = None,
-        deg: Tensor = None,
-        **kwargs,
+        self, input_dim: int, output_dim: int, hidden_dim: int = 32, edge_dim: int = None, deg: Tensor = None, **kwargs
     ):
         super().__init__()
         self.edge_embedding = Embedding(edge_dim, edge_dim)

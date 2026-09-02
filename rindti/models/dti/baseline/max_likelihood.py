@@ -5,7 +5,8 @@ from .base_baseline import BaseBaseline
 
 
 class Max(BaseBaseline):
-    """Take the most popular label."""
+    """Take the most popular label. If the prob flag is false (binary output), then the prediction is the mean of the labels (“Y”).  Otherwise, it outputs a random value from a normal distribution centered at the mean and scaled up to the standard deviation of the labels (“Y”). 
+"""
 
     def fit(self, train: pd.DataFrame):
         """Fit the model to the training dataframe. Has to have 'Drug_ID', 'Target_ID' and 'Y' columns."""
@@ -22,7 +23,5 @@ class Max(BaseBaseline):
 
     def predict(self, test: pd.DataFrame) -> pd.DataFrame:
         """Apply prediction to the whole test dataframe."""
-        test["pred"] = test.apply(
-            lambda x: self.predict_pair(x["Target_ID"], x["Drug_ID"]), axis=1
-        )
+        test["pred"] = test.apply(lambda x: self.predict_pair(x["Target_ID"], x["Drug_ID"]), axis=1)
         return test

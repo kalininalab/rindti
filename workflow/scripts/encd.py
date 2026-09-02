@@ -1,9 +1,9 @@
 from rdkit.Chem.rdchem import ChiralType
 
 
-def list_to_dict(list_object: list):
+def list_to_dict(l):
     """Convert list to dict"""
-    return {val: i for i, val in enumerate(list_object)}
+    return {val: i for i, val in enumerate(l)}
 
 
 encd = {
@@ -51,11 +51,7 @@ encd = {
             1,
             0,
         ],  # counterclockwise rotation of polarized light -> rotate light to the left
-        ChiralType.CHI_TETRAHEDRAL_CW: [
-            1,
-            0,
-            1,
-        ],  # clockwise rotation of polarized light -> rotate light to the right
+        ChiralType.CHI_TETRAHEDRAL_CW: [1, 0, 1],  # clockwise rotation of polarized light -> rotate light to the right
         ChiralType.CHI_UNSPECIFIED: [0, 0, 0],
     },
 }

@@ -1,3 +1,5 @@
+from argparse import ArgumentParser
+
 from torch.functional import Tensor
 from torch.nn import ModuleList
 from torch_geometric.nn import GATConv
@@ -7,7 +9,7 @@ from ..base_layer import BaseLayer
 
 
 class GatConvNet(BaseLayer):
-    """Graph Attention Layer.
+    """Graph Attention Layer: Uses multi-head attention to compute a unique, dynamic importance weight for each connection. Instead of simply averaging neighbor features, a target node learns to weigh its neighbors differently. A use case would be to identify binding pocket residues, as binding often depends on a small subset of residues.
 
     Refer to :class:`torch_geometric.nn.conv.GATConv` for more details.
 
@@ -31,10 +33,7 @@ class GatConvNet(BaseLayer):
         super().__init__()
         self.inp = GATConv(input_dim, hidden_dim, heads, concat=False)
         self.mid_layers = ModuleList(
-            [
-                GATConv(hidden_dim, hidden_dim, heads, concat=False)
-                for _ in range(num_layers - 2)
-            ]
+            [GATConv(hidden_dim, hidden_dim, heads, concat=False) for _ in range(num_layers - 2)]
         )
 
         self.out = GATConv(hidden_dim, output_dim, concat=False)
